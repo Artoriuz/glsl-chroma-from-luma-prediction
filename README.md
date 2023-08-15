@@ -27,3 +27,5 @@ In any case, as it stands this is how these shaders perform:
 | lanczos        | 0.0031 | 39.3481 | 0.9915 |  0.9987 |   |  0.2417 |   0.3026 |   0.2617 |      0.1711 |   | 0.2443 |
 | polar_lanczos  | 0.0032 | 39.1656 | 0.9911 |  0.9987 |   |  0.1228 |   0.2305 |   0.1625 |      0.0654 |   | 0.1453 |
 | bilinear       | 0.0033 | 38.5826 | 0.9905 |  0.9986 |   |  0.0000 |   0.0000 |   0.0000 |      0.0000 |   | 0.0000 |
+
+Also note that this will most likely be abandoned soon™, so don't expect these numbers to always be up to date.
