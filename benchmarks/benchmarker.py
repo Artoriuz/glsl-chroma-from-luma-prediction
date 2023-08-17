@@ -36,7 +36,7 @@ reference = cv2.imread('./reference.png', cv2.IMREAD_COLOR).astype(float) / 255.
 
 filelist = sorted(glob.glob('./*.png'))
 for myFile in filelist:
-    if not "downscaled" in myFile:
+    if not "original" in myFile:
         image = cv2.imread(myFile, cv2.IMREAD_COLOR).astype(float) / 255.0
         # image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY, 0)
 
