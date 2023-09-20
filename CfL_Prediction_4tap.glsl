@@ -88,14 +88,14 @@ vec4 hook() {
     vec2 alpha = luma_chroma_cov / luma_var;
     vec2 beta = chroma_avg - alpha * luma_avg;
 
-    float luma_00 = NATIVE_texOff(0.0).x;
-    vec2 chroma_00 = NATIVE_texOff(0.0).yz;
+    float luma_native = NATIVE_texOff(0.0).x;
+    vec2 chroma_native = NATIVE_texOff(0.0).yz;
 
-    vec2 pred_chroma = alpha * luma_00 + beta;
-    pred_chroma = clamp(pred_chroma, 0.0, 1.0);
+    vec2 chroma_pred = alpha * luma_native + beta;
+    chroma_pred = clamp(chroma_pred, 0.0, 1.0);
     
-    vec4 output_pix = vec4(luma_00, 0.0, 0.0, 1.0);
-    output_pix.yz = mix(chroma_00, pred_chroma, corr / 2.0);
+    vec4 output_pix = vec4(luma_native, 0.0, 0.0, 1.0);
+    output_pix.yz = mix(chroma_native, chroma_pred, corr / 2.0);
     output_pix.yz = clamp(output_pix.yz, chroma_min, chroma_max);
     // output_pix.yz = clamp(output_pix.yz, 0.0, 1.0);
     return  output_pix;
