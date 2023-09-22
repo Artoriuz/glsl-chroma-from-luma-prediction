@@ -220,6 +220,7 @@ vec4 hook() {
 //!BIND HOOKED
 //!BIND CFL_04
 //!BIND CFL_12
+//!WHEN CHROMA.w LUMA.w <
 //!DESC Chroma From Luma Prediction (Mixing)
 
 vec4 hook() {
