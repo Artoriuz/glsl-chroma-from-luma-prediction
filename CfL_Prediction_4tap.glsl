@@ -20,14 +20,49 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+//!HOOK CHROMA
+//!BIND LUMA
+//!BIND HOOKED
+//!SAVE LUMA_LOWRES
+//!WHEN CHROMA.w LUMA.w <
+//!DESC Chroma From Luma Prediction (Downscaling Luma)
+
+vec4 hook() {
+    vec2 start  = ceil((LUMA_pos - CHROMA_pt) * LUMA_size - 0.5);
+    vec2 end = floor((LUMA_pos + CHROMA_pt) * LUMA_size - 0.5);
+
+    float luma_pix = 0.0;
+    float w = 0.0;
+    float d = 0.0;
+    float wt = 0.0;
+    float val = 0.0;
+    vec2 pos = LUMA_pos;
+
+    for (float dx = start.x; dx <= end.x; dx++) {
+        for (float dy = start.y; dy <= end.y; dy++) {
+            pos = LUMA_pt * vec2(dx + 0.5, dy + 0.5);
+            d = length((pos - LUMA_pos) * CHROMA_size);
+            w = exp(-2.0 * pow(d, 2.0));
+            luma_pix = LUMA_tex(pos).x;
+            val += w * luma_pix;
+            wt += w;
+        }
+    }
+
+    vec4 output_pix = vec4(val / wt, 0.0, 0.0, 1.0);
+    return output_pix;
+}
+
 //!HOOK NATIVE
 //!BIND NATIVE
 //!BIND CHROMA
+//!BIND LUMA_LOWRES
 //!WHEN CHROMA.w LUMA.w <
 //!OFFSET ALIGN
-//!DESC Chroma From Luma Prediction (4-tap)
+//!DESC Chroma From Luma Prediction (4-tap) (Chroma Upscaling)
 
 vec4 hook() {
+    vec4 output_pix = NATIVE_texOff(0.0);
     vec2 pp = CHROMA_pos * CHROMA_size - vec2(0.5);
     vec2 fp = floor(pp);
 
@@ -38,65 +73,62 @@ vec4 hook() {
     chroma_pixels[3] = CHROMA_tex(vec2(fp + vec2(1.5, 1.5)) * CHROMA_pt).xy;
 
     float luma_pixels[4];
-    luma_pixels[0] = NATIVE_tex(vec2(fp + vec2(0.5)) * CHROMA_pt).x;
-    luma_pixels[1] = NATIVE_tex(vec2(fp + vec2(0.5, 1.5)) * CHROMA_pt).x;
-    luma_pixels[2] = NATIVE_tex(vec2(fp + vec2(1.5, 0.5)) * CHROMA_pt).x;
-    luma_pixels[3] = NATIVE_tex(vec2(fp + vec2(1.5, 1.5)) * CHROMA_pt).x;
-    
-    vec2 chroma_min = vec2(1e8);
-    chroma_min = min(chroma_min, chroma_pixels[0]);
-    chroma_min = min(chroma_min, chroma_pixels[1]);
-    chroma_min = min(chroma_min, chroma_pixels[2]);
-    chroma_min = min(chroma_min, chroma_pixels[3]);
+    luma_pixels[0] = LUMA_LOWRES_tex(vec2(fp + vec2(0.5)) * CHROMA_pt).x;
+    luma_pixels[1] = LUMA_LOWRES_tex(vec2(fp + vec2(0.5, 1.5)) * CHROMA_pt).x;
+    luma_pixels[2] = LUMA_LOWRES_tex(vec2(fp + vec2(1.5, 0.5)) * CHROMA_pt).x;
+    luma_pixels[3] = LUMA_LOWRES_tex(vec2(fp + vec2(1.5, 1.5)) * CHROMA_pt).x;
 
-    vec2 chroma_max = vec2(1e-8);
-    chroma_max = max(chroma_max, chroma_pixels[0]);
-    chroma_max = max(chroma_max, chroma_pixels[1]);
-    chroma_max = max(chroma_max, chroma_pixels[2]);
-    chroma_max = max(chroma_max, chroma_pixels[3]);
+    // vec2 chroma_min = vec2(1e8);
+    // chroma_min = min(chroma_min, chroma_pixels[0]);
+    // chroma_min = min(chroma_min, chroma_pixels[1]);
+    // chroma_min = min(chroma_min, chroma_pixels[2]);
+    // chroma_min = min(chroma_min, chroma_pixels[3]);
+    
+    // vec2 chroma_max = vec2(1e-8);
+    // chroma_max = max(chroma_max, chroma_pixels[0]);
+    // chroma_max = max(chroma_max, chroma_pixels[1]);
+    // chroma_max = max(chroma_max, chroma_pixels[2]);
+    // chroma_max = max(chroma_max, chroma_pixels[3]);
 
-    float luma_avg = 0.0;
+    float luma_avg_4 = 0.0;
     for(int i = 0; i < 4; i++) {
-        luma_avg += luma_pixels[i];
+        luma_avg_4 += luma_pixels[i];
     }
-    luma_avg /= 4.0;
+    luma_avg_4 /= 4.0;
     
-    float luma_var = 0.0;
+    float luma_var_4 = 0.0;
     for(int i = 0; i < 4; i++) {
-        luma_var += pow(luma_pixels[i] - luma_avg, 2.0);
-    }
-    
-    vec2 chroma_avg = vec2(0.0);
-    for(int i = 0; i < 4; i++) {
-        chroma_avg += chroma_pixels[i];
-    }
-    chroma_avg /= 4.0;
-    
-    vec2 chroma_var = vec2(0.0);
-    for(int i = 0; i < 4; i++) {
-        chroma_var += pow(chroma_pixels[i] - chroma_avg, vec2(2.0));
+        luma_var_4 += pow(luma_pixels[i] - luma_avg_4, 2.0);
     }
     
-    vec2 luma_chroma_cov = vec2(0.0);
+    vec2 chroma_avg_4 = vec2(0.0);
     for(int i = 0; i < 4; i++) {
-        luma_chroma_cov += (luma_pixels[i] - luma_avg) * (chroma_pixels[i] - chroma_avg);
+        chroma_avg_4 += chroma_pixels[i];
+    }
+    chroma_avg_4 /= 4.0;
+    
+    vec2 chroma_var_4 = vec2(0.0);
+    for(int i = 0; i < 4; i++) {
+        chroma_var_4 += pow(chroma_pixels[i] - chroma_avg_4, vec2(2.0));
     }
     
-    vec2 corr = abs(luma_chroma_cov / (sqrt(luma_var * chroma_var)));
-    corr = clamp(corr, 0.0, 1.0);
-
-    vec2 alpha = luma_chroma_cov / luma_var;
-    vec2 beta = chroma_avg - alpha * luma_avg;
-
-    float luma_native = NATIVE_texOff(0.0).x;
-    vec2 chroma_native = NATIVE_texOff(0.0).yz;
-
-    vec2 chroma_pred = alpha * luma_native + beta;
-    chroma_pred = clamp(chroma_pred, 0.0, 1.0);
+    vec2 luma_chroma_cov_4 = vec2(0.0);
+    for(int i = 0; i < 4; i++) {
+        luma_chroma_cov_4 += (luma_pixels[i] - luma_avg_4) * (chroma_pixels[i] - chroma_avg_4);
+    }
     
-    vec4 output_pix = vec4(luma_native, 0.0, 0.0, 1.0);
-    output_pix.yz = mix(chroma_native, chroma_pred, corr / 2.0);
-    output_pix.yz = clamp(output_pix.yz, chroma_min, chroma_max);
-    // output_pix.yz = clamp(output_pix.yz, 0.0, 1.0);
+    vec2 corr_4 = abs(luma_chroma_cov_4 / max(sqrt(luma_var_4 * chroma_var_4), 1e-6));
+    corr_4 = clamp(corr_4, 0.0, 1.0);
+
+    vec2 alpha_4 = luma_chroma_cov_4 / max(luma_var_4, 1e-6);
+    vec2 beta_4 = chroma_avg_4 - alpha_4 * luma_avg_4;
+
+    vec2 chroma_pred_4 = alpha_4 * output_pix.x + beta_4;
+    chroma_pred_4 = clamp(chroma_pred_4, 0.0, 1.0);
+
+    output_pix.yz = mix(output_pix.yz, chroma_pred_4, corr_4 / 2.0);
+
+    // Replace this with chroma_min and chroma_max if you want AR
+    output_pix.yz = clamp(output_pix.yz, 0.0, 1.0);
     return  output_pix;
 }
