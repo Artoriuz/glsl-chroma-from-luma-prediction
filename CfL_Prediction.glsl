@@ -174,8 +174,8 @@ vec4 hook() {
     vec2 chroma_pred_12 = alpha_12 * output_pix.x + beta_12;
     chroma_pred_12 = clamp(chroma_pred_12, 0.0, 1.0);
 
-    chroma_pred_4 = mix(output_pix.yz, chroma_pred_4, corr / 2.0);
-    chroma_pred_12 = mix(output_pix.yz, chroma_pred_12, corr / 2.0);
+    chroma_pred_4 = mix(output_pix.yz, chroma_pred_4, pow(corr, vec2(2.0)) / 2.0);
+    chroma_pred_12 = mix(output_pix.yz, chroma_pred_12, pow(corr, vec2(2.0)) / 2.0);
     output_pix.yz = mix(chroma_pred_4, chroma_pred_12, 0.5);
 
     // Replace this with chroma_min and chroma_max if you want AR

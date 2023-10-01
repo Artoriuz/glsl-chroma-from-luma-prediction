@@ -142,7 +142,7 @@ vec4 hook() {
     vec2 chroma_pred = alpha * output_pix.x + beta;
     chroma_pred = clamp(chroma_pred, 0.0, 1.0);
 
-    output_pix.yz = mix(output_pix.yz, chroma_pred, corr / 2.0);
+    output_pix.yz = mix(output_pix.yz, chroma_pred, pow(corr, vec2(2.0)) / 2.0);
 
     // Replace this with chroma_min and chroma_max if you want AR
     output_pix.yz = clamp(output_pix.yz, 0.0, 1.0);
