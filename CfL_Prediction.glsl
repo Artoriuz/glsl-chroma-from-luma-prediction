@@ -126,20 +126,11 @@ vec4 hook() {
     chroma_avg_4 += chroma_pixels[8];
     chroma_avg_4 /= 4.0;
 
-    vec2 chroma_var_4 = vec2(0.0);
-    chroma_var_4 += pow(chroma_pixels[3] - chroma_avg_4, vec2(2.0));
-    chroma_var_4 += pow(chroma_pixels[4] - chroma_avg_4, vec2(2.0));
-    chroma_var_4 += pow(chroma_pixels[7] - chroma_avg_4, vec2(2.0));
-    chroma_var_4 += pow(chroma_pixels[8] - chroma_avg_4, vec2(2.0));
-
     vec2 luma_chroma_cov_4 = vec2(0.0);
     luma_chroma_cov_4 += (luma_pixels[3] - luma_avg_4) * (chroma_pixels[3] - chroma_avg_4);
     luma_chroma_cov_4 += (luma_pixels[4] - luma_avg_4) * (chroma_pixels[4] - chroma_avg_4);
     luma_chroma_cov_4 += (luma_pixels[7] - luma_avg_4) * (chroma_pixels[7] - chroma_avg_4);
     luma_chroma_cov_4 += (luma_pixels[8] - luma_avg_4) * (chroma_pixels[8] - chroma_avg_4);
-
-    vec2 corr_4 = abs(luma_chroma_cov_4 / max(sqrt(luma_var_4 * chroma_var_4), 1e-6));
-    corr_4 = clamp(corr_4, 0.0, 1.0);
 
     vec2 alpha_4 = luma_chroma_cov_4 / max(luma_var_4, 1e-6);
     vec2 beta_4 = chroma_avg_4 - alpha_4 * luma_avg_4;
@@ -174,8 +165,8 @@ vec4 hook() {
         luma_chroma_cov_12 += (luma_pixels[i] - luma_avg_12) * (chroma_pixels[i] - chroma_avg_12);
     }
     
-    vec2 corr_12 = abs(luma_chroma_cov_12 / max(sqrt(luma_var_12 * chroma_var_12), 1e-6));
-    corr_12 = clamp(corr_12, 0.0, 1.0);
+    vec2 corr = abs(luma_chroma_cov_12 / max(sqrt(luma_var_12 * chroma_var_12), 1e-6));
+    corr = clamp(corr, 0.0, 1.0);
 
     vec2 alpha_12 = luma_chroma_cov_12 / max(luma_var_12, 1e-6);
     vec2 beta_12 = chroma_avg_12 - alpha_12 * luma_avg_12;
@@ -183,11 +174,12 @@ vec4 hook() {
     vec2 chroma_pred_12 = alpha_12 * output_pix.x + beta_12;
     chroma_pred_12 = clamp(chroma_pred_12, 0.0, 1.0);
 
-    chroma_pred_4 = mix(output_pix.yz, chroma_pred_4, corr_4 / 2.0);
-    chroma_pred_12 = mix(output_pix.yz, chroma_pred_12, corr_12 / 2.0);
+    chroma_pred_4 = mix(output_pix.yz, chroma_pred_4, corr / 2.0);
+    chroma_pred_12 = mix(output_pix.yz, chroma_pred_12, corr / 2.0);
     output_pix.yz = mix(chroma_pred_4, chroma_pred_12, 0.5);
 
     // Replace this with chroma_min and chroma_max if you want AR
+    // output_pix.yz = clamp(output_pix.yz, chroma_min, chroma_max);
     output_pix.yz = clamp(output_pix.yz, 0.0, 1.0);
     return  output_pix;
 }

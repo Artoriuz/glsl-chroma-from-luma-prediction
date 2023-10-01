@@ -106,43 +106,43 @@ vec4 hook() {
     // chroma_max = max(chroma_max, chroma_pixels[7]);
     // chroma_max = max(chroma_max, chroma_pixels[8]);
 
-    float luma_avg_12 = 0.0;
+    float luma_avg = 0.0;
     for(int i = 0; i < 12; i++) {
-        luma_avg_12 += luma_pixels[i];
+        luma_avg += luma_pixels[i];
     }
-    luma_avg_12 /= 12.0;
+    luma_avg /= 12.0;
     
-    float luma_var_12 = 0.0;
+    float luma_var = 0.0;
     for(int i = 0; i < 12; i++) {
-        luma_var_12 += pow(luma_pixels[i] - luma_avg_12, 2.0);
-    }
-    
-    vec2 chroma_avg_12 = vec2(0.0);
-    for(int i = 0; i < 12; i++) {
-        chroma_avg_12 += chroma_pixels[i];
-    }
-    chroma_avg_12 /= 12.0;
-    
-    vec2 chroma_var_12 = vec2(0.0);
-    for(int i = 0; i < 12; i++) {
-        chroma_var_12 += pow(chroma_pixels[i] - chroma_avg_12, vec2(2.0));
+        luma_var += pow(luma_pixels[i] - luma_avg, 2.0);
     }
     
-    vec2 luma_chroma_cov_12 = vec2(0.0);
+    vec2 chroma_avg = vec2(0.0);
     for(int i = 0; i < 12; i++) {
-        luma_chroma_cov_12 += (luma_pixels[i] - luma_avg_12) * (chroma_pixels[i] - chroma_avg_12);
+        chroma_avg += chroma_pixels[i];
+    }
+    chroma_avg /= 12.0;
+    
+    vec2 chroma_var = vec2(0.0);
+    for(int i = 0; i < 12; i++) {
+        chroma_var += pow(chroma_pixels[i] - chroma_avg, vec2(2.0));
     }
     
-    vec2 corr_12 = abs(luma_chroma_cov_12 / max(sqrt(luma_var_12 * chroma_var_12), 1e-6));
-    corr_12 = clamp(corr_12, 0.0, 1.0);
+    vec2 luma_chroma_cov = vec2(0.0);
+    for(int i = 0; i < 12; i++) {
+        luma_chroma_cov += (luma_pixels[i] - luma_avg) * (chroma_pixels[i] - chroma_avg);
+    }
+    
+    vec2 corr = abs(luma_chroma_cov / max(sqrt(luma_var * chroma_var), 1e-6));
+    corr = clamp(corr, 0.0, 1.0);
 
-    vec2 alpha_12 = luma_chroma_cov_12 / max(luma_var_12, 1e-6);
-    vec2 beta_12 = chroma_avg_12 - alpha_12 * luma_avg_12;
+    vec2 alpha = luma_chroma_cov / max(luma_var, 1e-6);
+    vec2 beta = chroma_avg - alpha * luma_avg;
 
-    vec2 chroma_pred_12 = alpha_12 * output_pix.x + beta_12;
-    chroma_pred_12 = clamp(chroma_pred_12, 0.0, 1.0);
+    vec2 chroma_pred = alpha * output_pix.x + beta;
+    chroma_pred = clamp(chroma_pred, 0.0, 1.0);
 
-    output_pix.yz = mix(output_pix.yz, chroma_pred_12, corr_12 / 2.0);
+    output_pix.yz = mix(output_pix.yz, chroma_pred, corr / 2.0);
 
     // Replace this with chroma_min and chroma_max if you want AR
     output_pix.yz = clamp(output_pix.yz, 0.0, 1.0);
