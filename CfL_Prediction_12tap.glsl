@@ -59,7 +59,7 @@ vec4 hook() {
 //!BIND LUMA_LOWRES
 //!WHEN CHROMA.w LUMA.w <
 //!OFFSET ALIGN
-//!DESC Chroma From Luma Prediction (12-tap) (Chroma Upscaling)
+//!DESC Chroma From Luma Prediction (12-tap, Chroma Upscaling)
 
 vec4 hook() {
     vec4 output_pix = NATIVE_texOff(0.0);
