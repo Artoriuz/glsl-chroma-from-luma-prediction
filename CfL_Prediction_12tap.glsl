@@ -195,10 +195,10 @@ vec4 hook() {
         luma_chroma_cov_12 += (luma_pixels[i] - luma_avg_12) * (chroma_pixels[i] - chroma_avg_12);
     }
     
-    vec2 corr = abs(luma_chroma_cov_12 / max(sqrt(luma_var_12 * chroma_var_12), 1e-6));
+    vec2 corr = abs(luma_chroma_cov_12 / max(sqrt(luma_var_12 * chroma_var_12), division_limit));
     corr = clamp(corr, 0.0, 1.0);
 
-    vec2 alpha_12 = luma_chroma_cov_12 / max(luma_var_12, 1e-6);
+    vec2 alpha_12 = luma_chroma_cov_12 / max(luma_var_12, division_limit);
     vec2 beta_12 = chroma_avg_12 - alpha_12 * luma_avg_12;
 
     vec2 chroma_pred_12 = alpha_12 * luma_zero + beta_12;
