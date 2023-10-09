@@ -21,37 +21,56 @@
 // SOFTWARE.
 
 //!HOOK CHROMA
+//!BIND CHROMA
 //!BIND LUMA
-//!BIND HOOKED
+//!SAVE LUMA_LOWRES
+//!WIDTH CHROMA.w
+//!HEIGHT LUMA.h
+//!WHEN CHROMA.w LUMA.w <
+//!DESC Chroma From Luma Prediction (Downscaling Luma 1st Step)
+
+vec4 hook() {
+    float factor = ceil(LUMA_size.x / CHROMA_size.x);
+    int start = int(ceil(-factor - 0.5));
+    int end = int(floor(factor - 0.5));
+    float filter_end = float(end) + 1.5;
+
+    float output_luma = 0.0;
+    float wt = 0.0;
+    for (int dx = start; dx <= end; dx++) {
+        float luma_pix = LUMA_texOff(vec2(dx + 0.5, 0.0)).x;
+        float wd = smoothstep(0.0, filter_end, filter_end - length(vec2(dx + 0.5, 0.0)));
+        output_luma += luma_pix * wd;
+        wt += wd;
+    }
+    vec4 output_pix = vec4(output_luma / wt, 0.0, 0.0, 1.0);
+    return output_pix;
+}
+
+//!HOOK CHROMA
+//!BIND CHROMA
+//!BIND LUMA_LOWRES
 //!SAVE LUMA_LOWRES
 //!WIDTH CHROMA.w
 //!HEIGHT CHROMA.h
 //!WHEN CHROMA.w LUMA.w <
-//!DESC Chroma From Luma Prediction (Downscaling Luma)
+//!DESC Chroma From Luma Prediction (Downscaling Luma 2nd Step)
 
 vec4 hook() {
-    vec2 start  = ceil((LUMA_pos - CHROMA_pt) * LUMA_size - 0.5);
-    vec2 end = floor((LUMA_pos + CHROMA_pt) * LUMA_size - 0.5);
+    float factor = ceil(LUMA_LOWRES_size.y / CHROMA_size.y);
+    int start = int(ceil(-factor - 0.5));
+    int end = int(floor(factor - 0.5));
+    float filter_end = float(end) + 1.5;
 
-    float luma_pix = 0.0;
-    float w = 0.0;
-    float d = 0.0;
+    float output_luma = 0.0;
     float wt = 0.0;
-    float val = 0.0;
-    vec2 pos = LUMA_pos;
-
-    for (float dx = start.x; dx <= end.x; dx++) {
-        for (float dy = start.y; dy <= end.y; dy++) {
-            pos = LUMA_pt * vec2(dx + 0.5, dy + 0.5);
-            d = length((pos - LUMA_pos) * CHROMA_size);
-            w = exp(-2.0 * pow(d, 2.0));
-            luma_pix = LUMA_tex(pos).x;
-            val += w * luma_pix;
-            wt += w;
-        }
+    for (int dy = start; dy <= end; dy++) {
+        float luma_pix = LUMA_LOWRES_texOff(vec2(0.0, dy + 0.5)).x;
+        float wd = smoothstep(0.0, filter_end, filter_end - length(vec2(0.0, dy + 0.5)));
+        output_luma += luma_pix * wd;
+        wt += wd;
     }
-
-    vec4 output_pix = vec4(val / wt, 0.0, 0.0, 1.0);
+    vec4 output_pix = vec4(output_luma / wt, 0.0, 0.0, 1.0);
     return output_pix;
 }
 
@@ -66,13 +85,11 @@ vec4 hook() {
 //!DESC Chroma From Luma Prediction (Upscaling Chroma)
 
 float comp_wd(vec2 distance) {
-    float d = length(distance);
+    float d = min(length(distance), 2.0);
     if (d < 1.0) {
         return (6.0 + d * d * (-15.0 + d * 9.0)) / 6.0;
-    } else if (d < 2.0) {
-        return (12.0 + d * (-24.0 + d * (15.0 + d * -3.0))) / 6.0;
     } else {
-        return 0.0;
+        return (12.0 + d * (-24.0 + d * (15.0 + d * -3.0))) / 6.0;
     }
 }
 
