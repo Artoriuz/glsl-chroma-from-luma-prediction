@@ -85,16 +85,12 @@ vec4 hook() {
 //!DESC Chroma From Luma Prediction (4-tap, Upscaling Chroma)
 
 float comp_wd(vec2 distance) {
-    float d = min(length(distance), 2.0);
-    if (d < 1.0) {
-        return (6.0 + d * d * (-15.0 + d * 9.0)) / 6.0;
-    } else {
-        return (12.0 + d * (-24.0 + d * (15.0 + d * -3.0))) / 6.0;
-    }
+    float d2 = min(pow(length(distance), 2.0), 4.0);
+    return (25.0 / 16.0 * pow(2.0 / 5.0 * d2 - 1.0, 2.0) - (25.0 / 16.0 - 1.0)) * pow(1.0 / 4.0 * d2 - 1.0, 2.0);
 }
 
 vec4 hook() {
-    float division_limit = 1e-4;
+    float division_limit = 1e-3;
 
     vec4 output_pix = vec4(0.0, 0.0, 0.0, 1.0);
     float luma_zero = LUMA_texOff(0.0).x;
@@ -168,7 +164,7 @@ vec4 hook() {
     }
 
     vec2 chroma_spatial = ct / wt;
-    chroma_spatial = clamp(chroma_spatial, chroma_min, chroma_max);
+    chroma_spatial = mix(chroma_spatial, clamp(chroma_spatial, chroma_min, chroma_max), 0.75);
 
     float luma_avg_4 = 0.0;
     luma_avg_4 += luma_pixels[3];
