@@ -86,6 +86,7 @@ float comp_wd(vec2 distance) {
 }
 
 vec4 hook() {
+    float ar_strength = 0.75;
     float division_limit = 1e-4;
 
     vec4 output_pix = vec4(0.0, 0.0, 0.0, 1.0);
@@ -160,7 +161,7 @@ vec4 hook() {
     }
 
     vec2 chroma_spatial = ct / wt;
-    chroma_spatial = mix(chroma_spatial, clamp(chroma_spatial, chroma_min, chroma_max), 0.75);
+    chroma_spatial = mix(chroma_spatial, clamp(chroma_spatial, chroma_min, chroma_max), ar_strength);
 
     float luma_avg_12 = 0.0;
     for(int i = 0; i < 12; i++) {
@@ -237,8 +238,7 @@ vec4 hook() {
 #else
     output_pix.xy = chroma_pred_12;
 #endif
-    // Replace this with chroma_min and chroma_max if you want AR
-    // output_pix.yz = clamp(output_pix.yz, chroma_min, chroma_max);
+    // output_pix.xy = mix(output_pix.xy, clamp(output_pix.xy, chroma_min, chroma_max), ar_strength);
     output_pix.xy = clamp(output_pix.xy, 0.0, 1.0);
     return  output_pix;
 }
