@@ -78,7 +78,7 @@ vec4 hook() {
 //!OFFSET ALIGN
 //!DESC Chroma From Luma Prediction (Upscaling Chroma)
 
-#define USE_4_TAP_REGRESSION 0
+#define USE_4_TAP_REGRESSION 1
 
 float comp_wd(vec2 distance) {
     float d2 = min(pow(length(distance), 2.0), 4.0);
