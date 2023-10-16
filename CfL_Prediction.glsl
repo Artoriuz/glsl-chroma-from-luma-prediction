@@ -31,20 +31,17 @@
 
 vec4 hook() {
     float factor = ceil(LUMA_size.x / HOOKED_size.x);
-    int start = int(ceil(-factor - 0.5));
-    int end = int(floor(factor - 0.5));
-    float filter_end = float(end) + 1.5;
+    int start = int(ceil(-factor / 2.0 - 0.5));
+    int end = int(floor(factor / 2.0 - 0.5));
 
     float output_luma = 0.0;
-    float wt = 0.0;
+    int wt = 0;
     for (int dx = start; dx <= end; dx++) {
-        float luma_pix = LUMA_texOff(vec2(dx + 0.5, 0.0)).x;
-        float wd = smoothstep(0.0, filter_end, filter_end - length(vec2(dx + 0.5, 0.0)));
-        output_luma += luma_pix * wd;
-        wt += wd;
+        output_luma += linearize(LUMA_texOff(vec2(dx + 0.5, 0.0))).x;
+        wt++;
     }
-    vec4 output_pix = vec4(output_luma / wt, 0.0, 0.0, 1.0);
-    return output_pix;
+    vec4 output_pix = vec4(output_luma / float(wt), 0.0, 0.0, 1.0);
+    return delinearize(output_pix);
 }
 
 //!HOOK CHROMA
@@ -58,20 +55,17 @@ vec4 hook() {
 
 vec4 hook() {
     float factor = ceil(LUMA_LOWRES_size.y / HOOKED_size.y);
-    int start = int(ceil(-factor - 0.5));
-    int end = int(floor(factor - 0.5));
-    float filter_end = float(end) + 1.5;
+    int start = int(ceil(-factor / 2.0 - 0.5));
+    int end = int(floor(factor / 2.0 - 0.5));
 
     float output_luma = 0.0;
-    float wt = 0.0;
+    int wt = 0;
     for (int dy = start; dy <= end; dy++) {
-        float luma_pix = LUMA_LOWRES_texOff(vec2(0.0, dy + 0.5)).x;
-        float wd = smoothstep(0.0, filter_end, filter_end - length(vec2(0.0, dy + 0.5)));
-        output_luma += luma_pix * wd;
-        wt += wd;
+        output_luma += linearize(LUMA_LOWRES_texOff(vec2(0.0, dy + 0.5))).x;
+        wt++;
     }
-    vec4 output_pix = vec4(output_luma / wt, 0.0, 0.0, 1.0);
-    return output_pix;
+    vec4 output_pix = vec4(output_luma / float(wt), 0.0, 0.0, 1.0);
+    return delinearize(output_pix);
 }
 
 //!HOOK CHROMA
@@ -84,7 +78,7 @@ vec4 hook() {
 //!OFFSET ALIGN
 //!DESC Chroma From Luma Prediction (Upscaling Chroma)
 
-#define USE_4_TAP_REGRESSION 1
+#define USE_4_TAP_REGRESSION 0
 
 float comp_wd(vec2 distance) {
     float d2 = min(pow(length(distance), 2.0), 4.0);
