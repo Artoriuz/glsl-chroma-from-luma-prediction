@@ -13,5 +13,7 @@ The shaders are experimental and minor improvements are being made over time. If
 ## Instructions
 Add something like this to your mpv config:
 ```
+vo=gpu-next
 glsl-shader="path/to/shader/CfL_Prediction.glsl"
 ```
+`gpu-next` is currently required for the shader to be able to do linear downscaling, but if you want to use it on `gpu` you can safely just remove the `linearize()` and `delinearize()` functions.
