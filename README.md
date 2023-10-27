@@ -14,6 +14,5 @@ The shaders are experimental and minor improvements are being made over time. If
 ## Instructions
 Add something like this to your mpv config:
 ```
-vo=gpu-next
 glsl-shader="path/to/shader/CfL_Prediction.glsl"
 ```
