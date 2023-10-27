@@ -80,11 +80,6 @@ vec4 hook() {
 
 #define USE_4_TAP_REGRESSION 1
 
-float comp_wd(vec2 distance) {
-    float d2 = min(pow(length(distance), 2.0), 4.0);
-    return (25.0 / 16.0 * pow(2.0 / 5.0 * d2 - 1.0, 2.0) - (25.0 / 16.0 - 1.0)) * pow(1.0 / 4.0 * d2 - 1.0, 2.0);
-}
-
 vec4 hook() {
     float ar_strength = 0.75;
     float division_limit = 1e-4;
@@ -182,33 +177,6 @@ vec4 hook() {
     chroma_max = max(chroma_max, chroma_pixels[7]);
     chroma_max = max(chroma_max, chroma_pixels[8]);
 
-    float wd[12];
-    wd[0]  = comp_wd(vec2( 0.0,-1.0) - pp);
-    wd[1]  = comp_wd(vec2( 1.0,-1.0) - pp);
-    wd[2]  = comp_wd(vec2(-1.0, 0.0) - pp);
-    wd[3]  = comp_wd(vec2( 0.0, 0.0) - pp);
-    wd[4]  = comp_wd(vec2( 1.0, 0.0) - pp);
-    wd[5]  = comp_wd(vec2( 2.0, 0.0) - pp);
-    wd[6]  = comp_wd(vec2(-1.0, 1.0) - pp);
-    wd[7]  = comp_wd(vec2( 0.0, 1.0) - pp);
-    wd[8]  = comp_wd(vec2( 1.0, 1.0) - pp);
-    wd[9]  = comp_wd(vec2( 2.0, 1.0) - pp);
-    wd[10] = comp_wd(vec2( 0.0, 2.0) - pp);
-    wd[11] = comp_wd(vec2( 1.0, 2.0) - pp);
-
-    float wt = 0.0;
-    for (int i = 0; i < 12; i++) {
-        wt += wd[i];
-    }
-
-    vec2 ct = vec2(0.0);
-    for (int i = 0; i < 12; i++) {
-        ct += wd[i] * chroma_pixels[i];
-    }
-
-    vec2 chroma_spatial = ct / wt;
-    chroma_spatial = mix(chroma_spatial, clamp(chroma_spatial, chroma_min, chroma_max), ar_strength);
-
     float luma_avg_12 = 0.0;
     for(int i = 0; i < 12; i++) {
         luma_avg_12 += luma_pixels[i];
@@ -244,7 +212,7 @@ vec4 hook() {
 
     vec2 chroma_pred_12 = alpha_12 * luma_zero + beta_12;
     chroma_pred_12 = clamp(chroma_pred_12, 0.0, 1.0);
-    chroma_pred_12 = mix(chroma_spatial, chroma_pred_12, pow(corr, vec2(2.0)) / 2.0);
+    chroma_pred_12 = mix(vec2(0.5), chroma_pred_12, pow(corr, vec2(2.0)));
 
 #if (USE_4_TAP_REGRESSION == 1)
     float luma_avg_4 = 0.0;
@@ -278,7 +246,7 @@ vec4 hook() {
 
     vec2 chroma_pred_4 = alpha_4 * luma_zero + beta_4;
     chroma_pred_4 = clamp(chroma_pred_4, 0.0, 1.0);
-    chroma_pred_4 = mix(chroma_spatial, chroma_pred_4, pow(corr, vec2(2.0)) / 2.0);
+    chroma_pred_4 = mix(vec2(0.5), chroma_pred_4, pow(corr, vec2(2.0)));
 
     output_pix.xy = mix(chroma_pred_4, chroma_pred_12, 0.5);
 #else

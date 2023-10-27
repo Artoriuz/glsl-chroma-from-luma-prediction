@@ -37,11 +37,11 @@ vec4 hook() {
     float output_luma = 0.0;
     int wt = 0;
     for (int dx = start; dx <= end; dx++) {
-        output_luma += linearize(LUMA_texOff(vec2(dx + 0.5, 0.0))).x;
+        output_luma += LUMA_texOff(vec2(dx + 0.5, 0.0)).x;
         wt++;
     }
     vec4 output_pix = vec4(output_luma / float(wt), 0.0, 0.0, 1.0);
-    return delinearize(output_pix);
+    return output_pix;
 }
 
 //!HOOK CHROMA
@@ -61,11 +61,11 @@ vec4 hook() {
     float output_luma = 0.0;
     int wt = 0;
     for (int dy = start; dy <= end; dy++) {
-        output_luma += linearize(LUMA_LOWRES_texOff(vec2(0.0, dy + 0.5))).x;
+        output_luma += LUMA_LOWRES_texOff(vec2(0.0, dy + 0.5)).x;
         wt++;
     }
     vec4 output_pix = vec4(output_luma / float(wt), 0.0, 0.0, 1.0);
-    return delinearize(output_pix);
+    return output_pix;
 }
 
 //!HOOK CHROMA
