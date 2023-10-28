@@ -172,6 +172,18 @@ vec4 hook() {
     luma_pixels[11] = LUMA_LOWRES_tex(vec2((fp + vec2( 1.5, 2.5)) * HOOKED_pt)).x;
 #endif
 #endif
+    vec2 chroma_min = vec2(1e8);
+    chroma_min = min(chroma_min, chroma_pixels[3]);
+    chroma_min = min(chroma_min, chroma_pixels[4]);
+    chroma_min = min(chroma_min, chroma_pixels[7]);
+    chroma_min = min(chroma_min, chroma_pixels[8]);
+
+    vec2 chroma_max = vec2(1e-8);
+    chroma_max = max(chroma_max, chroma_pixels[3]);
+    chroma_max = max(chroma_max, chroma_pixels[4]);
+    chroma_max = max(chroma_max, chroma_pixels[7]);
+    chroma_max = max(chroma_max, chroma_pixels[8]);
+
     vec2 chroma_spatial = vec2(0.5);
 #if (USE_12_TAP_REGRESSION == 1 || USE_4_TAP_REGRESSION == 1)
     float luma_avg_12 = 0.0;
@@ -184,7 +196,7 @@ vec4 hook() {
     for(int i = 0; i < 12; i++) {
         luma_var_12 += pow(luma_pixels[i] - luma_avg_12, 2.0);
     }
-    
+
     vec2 chroma_avg_12 = vec2(0.0);
     for(int i = 0; i < 12; i++) {
         chroma_avg_12 += chroma_pixels[i];
@@ -200,7 +212,7 @@ vec4 hook() {
     for(int i = 0; i < 12; i++) {
         luma_chroma_cov_12 += (luma_pixels[i] - luma_avg_12) * (chroma_pixels[i] - chroma_avg_12);
     }
-    
+
     vec2 corr = abs(luma_chroma_cov_12 / max(sqrt(luma_var_12 * chroma_var_12), division_limit));
     corr = clamp(corr, 0.0, 1.0);
 #endif
@@ -209,7 +221,20 @@ vec4 hook() {
     vec2 beta_12 = chroma_avg_12 - alpha_12 * luma_avg_12;
 
     vec2 chroma_pred_12 = alpha_12 * luma_zero + beta_12;
-    chroma_pred_12 = clamp(chroma_pred_12, 0.0, 1.0);
+
+    if (chroma_min.x > 0.5) {
+        chroma_pred_12.x = clamp(chroma_pred_12.x, 0.5, 1.0);
+    }
+    if (chroma_min.y > 0.5) {
+        chroma_pred_12.y = clamp(chroma_pred_12.y, 0.5, 1.0);
+    }
+    if (chroma_max.x < 0.5) {
+        chroma_pred_12.x = clamp(chroma_pred_12.x, 0.0, 0.5);
+    }
+    if (chroma_max.y < 0.5) {
+        chroma_pred_12.y = clamp(chroma_pred_12.y, 0.0, 0.5);
+    }
+
     chroma_pred_12 = mix(chroma_spatial, chroma_pred_12, pow(corr, vec2(2.0)));
 #endif
 #if (USE_4_TAP_REGRESSION == 1)
@@ -243,7 +268,20 @@ vec4 hook() {
     vec2 beta_4 = chroma_avg_4 - alpha_4 * luma_avg_4;
 
     vec2 chroma_pred_4 = alpha_4 * luma_zero + beta_4;
-    chroma_pred_4 = clamp(chroma_pred_4, 0.0, 1.0);
+
+    if (chroma_min.x > 0.5) {
+        chroma_pred_4.x = clamp(chroma_pred_4.x, 0.5, 1.0);
+    }
+    if (chroma_min.y > 0.5) {
+        chroma_pred_4.y = clamp(chroma_pred_4.y, 0.5, 1.0);
+    }
+    if (chroma_max.x < 0.5) {
+        chroma_pred_4.x = clamp(chroma_pred_4.x, 0.0, 0.5);
+    }
+    if (chroma_max.y < 0.5) {
+        chroma_pred_4.y = clamp(chroma_pred_4.y, 0.0, 0.5);
+    }
+
     chroma_pred_4 = mix(chroma_spatial, chroma_pred_4, pow(corr, vec2(2.0)));
 #endif
 #if (USE_12_TAP_REGRESSION == 1 && USE_4_TAP_REGRESSION == 1)
