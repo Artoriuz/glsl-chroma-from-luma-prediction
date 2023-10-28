@@ -87,7 +87,7 @@ float comp_wd(vec2 distance) {
 }
 
 vec4 hook() {
-    float ar_strength = 0.75;
+    float ar_strength = 0.5;
     float division_limit = 1e-4;
 
     vec4 output_pix = vec4(0.0, 0.0, 0.0, 1.0);
