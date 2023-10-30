@@ -111,7 +111,7 @@ vec4 hook() {
     chroma_pixels[0]  = vec2(chroma_quads[0][0].z, chroma_quads[0][1].z);
     chroma_pixels[1]  = vec2(chroma_quads[1][0].w, chroma_quads[1][1].w);
     chroma_pixels[2]  = vec2(chroma_quads[0][0].x, chroma_quads[0][1].x);
-    chroma_pixels[3]  = vec2(chroma_quads[0][0].y, chroma_quads[0][1].y); 
+    chroma_pixels[3]  = vec2(chroma_quads[0][0].y, chroma_quads[0][1].y);
     chroma_pixels[4]  = vec2(chroma_quads[1][0].x, chroma_quads[1][1].x);
     chroma_pixels[5]  = vec2(chroma_quads[1][0].y, chroma_quads[1][1].y);
     chroma_pixels[6]  = vec2(chroma_quads[2][0].w, chroma_quads[2][1].w);
@@ -216,7 +216,7 @@ vec4 hook() {
         luma_avg_12 += luma_pixels[i];
     }
     luma_avg_12 /= 12.0;
-    
+
     float luma_var_12 = 0.0;
     for(int i = 0; i < 12; i++) {
         luma_var_12 += pow(luma_pixels[i] - luma_avg_12, 2.0);
@@ -232,7 +232,7 @@ vec4 hook() {
     for(int i = 0; i < 12; i++) {
         chroma_var_12 += pow(chroma_pixels[i] - chroma_avg_12, vec2(2.0));
     }
-    
+
     vec2 luma_chroma_cov_12 = vec2(0.0);
     for(int i = 0; i < 12; i++) {
         luma_chroma_cov_12 += (luma_pixels[i] - luma_avg_12) * (chroma_pixels[i] - chroma_avg_12);
