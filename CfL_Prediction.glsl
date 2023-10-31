@@ -87,7 +87,7 @@ float comp_wd(vec2 distance) {
 }
 
 vec4 hook() {
-    float ar_strength = 0.6666666667;
+    float ar_strength = 0.65;
 
     vec4 output_pix = vec4(0.0, 0.0, 0.0, 1.0);
     float luma_zero = LUMA_texOff(0.0).x;
@@ -95,7 +95,6 @@ vec4 hook() {
     vec2 pp = HOOKED_pos * HOOKED_size - vec2(0.5);
     vec2 fp = floor(pp);
     pp -= fp;
-
 #ifdef HOOKED_gather
     vec4 chroma_quads[4][2];
     chroma_quads[0][0] = HOOKED_gather(vec2((fp + vec2(0.0, 0.0)) * HOOKED_pt), 0);
@@ -207,9 +206,8 @@ vec4 hook() {
         ct += wd[i] * chroma_pixels[i];
     }
 
-    vec2 chroma_spatial = ct / wt;
+    vec2 chroma_spatial = clamp(ct / wt, 0.0, 1.0);
     chroma_spatial = mix(chroma_spatial, clamp(chroma_spatial, chroma_min, chroma_max), ar_strength);
-
 #if (USE_12_TAP_REGRESSION == 1 || USE_4_TAP_REGRESSION == 1)
     float luma_avg_12 = 0.0;
     for(int i = 0; i < 12; i++) {
@@ -245,21 +243,7 @@ vec4 hook() {
     vec2 alpha_12 = luma_chroma_cov_12 / max(luma_var_12, 1e-6);
     vec2 beta_12 = chroma_avg_12 - alpha_12 * luma_avg_12;
 
-    vec2 chroma_pred_12 = alpha_12 * luma_zero + beta_12;
-
-    if (chroma_min.x > 0.5) {
-        chroma_pred_12.x = clamp(chroma_pred_12.x, 0.5, 1.0);
-    }
-    if (chroma_min.y > 0.5) {
-        chroma_pred_12.y = clamp(chroma_pred_12.y, 0.5, 1.0);
-    }
-    if (chroma_max.x < 0.5) {
-        chroma_pred_12.x = clamp(chroma_pred_12.x, 0.0, 0.5);
-    }
-    if (chroma_max.y < 0.5) {
-        chroma_pred_12.y = clamp(chroma_pred_12.y, 0.0, 0.5);
-    }
-
+    vec2 chroma_pred_12 = clamp(alpha_12 * luma_zero + beta_12, 0.0, 1.0);
     chroma_pred_12 = mix(chroma_spatial, chroma_pred_12, pow(corr, vec2(2.0)) / 2.0);
 #endif
 #if (USE_4_TAP_REGRESSION == 1)
@@ -292,7 +276,7 @@ vec4 hook() {
     vec2 alpha_4 = luma_chroma_cov_4 / max(luma_var_4, 1e-4);
     vec2 beta_4 = chroma_avg_4 - alpha_4 * luma_avg_4;
 
-    vec2 chroma_pred_4 = alpha_4 * luma_zero + beta_4;
+    vec2 chroma_pred_4 = clamp(alpha_4 * luma_zero + beta_4, 0.0, 1.0);
 
     if (chroma_min.x > 0.5) {
         chroma_pred_4.x = clamp(chroma_pred_4.x, 0.5, 1.0);
@@ -306,7 +290,6 @@ vec4 hook() {
     if (chroma_max.y < 0.5) {
         chroma_pred_4.y = clamp(chroma_pred_4.y, 0.0, 0.5);
     }
-
     chroma_pred_4 = mix(chroma_spatial, chroma_pred_4, pow(corr, vec2(2.0)) / 2.0);
 #endif
 #if (USE_12_TAP_REGRESSION == 1 && USE_4_TAP_REGRESSION == 1)
