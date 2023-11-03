@@ -82,12 +82,8 @@ vec4 hook() {
 #define USE_4_TAP_REGRESSION 0
 
 float comp_wd(vec2 distance) {
-    float d = min(length(distance), 2.0);
-    if (d < 1.0) {
-        return (6.0 + pow(d, 2.0) * (-13.5 + d * 7.5)) / 6.0;
-    } else if (d < 2.0) {
-        return (18.0 + d * (-36.0 + d * (22.5 + d * -4.5))) / 6.0;
-    }
+    float d2 = min(pow(length(distance), 2.0), 4.0);
+    return (25.0 / 16.0 * pow(2.0 / 5.0 * d2 - 1.0, 2.0) - (25.0 / 16.0 - 1.0)) * pow(1.0 / 4.0 * d2 - 1.0, 2.0);
 }
 
 vec4 hook() {
