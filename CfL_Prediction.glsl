@@ -48,7 +48,7 @@ vec4 hook() {
 
 float comp_wd(vec2 distance) {
     float d2 = min(pow(length(distance), 2.0), 4.0);
-    return (25.0 / 16.0 * pow(2.0 / 5.0 * d2 - 1.0, 2.0) - (25.0 / 16.0 - 1.0)) * pow(1.0 / 4.0 * d2 - 1.0, 2.0);
+    return return d2 < 2.0 ? (25.0 / 16.0 * pow(2.0 / 5.0 * d2 - 1.0, 2.0) - (25.0 / 16.0 - 1.0)) * pow(1.0 / 4.0 * d2 - 1.0, 2.0) : 0.0;
 }
 
 vec4 hook() {
