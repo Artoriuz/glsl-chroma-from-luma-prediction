@@ -30,20 +30,7 @@
 //!DESC Chroma From Luma Prediction (Downscaling Luma)
 
 vec4 hook() {
-    vec2 factor = ceil(input_size / target_size);
-    ivec2 start = ivec2(ceil(-factor / 2.0 - 0.5));
-    ivec2 end = ivec2(floor(factor / 2.0 - 0.5));
-
-    float output_luma = 0.0;
-    int wt = 0;
-    for (int dx = start.x; dx <= end.x; dx++) {
-        for (int dy = start.y; dy <= end.y; dy++) {
-            output_luma += LUMA_texOff(vec2(dx + 0.5, dy + 0.5)).x;
-            wt++;
-        }
-    }
-    vec4 output_pix = vec4(output_luma / float(wt), 0.0, 0.0, 1.0);
-    return output_pix;
+    return LUMA_texOff(0.0);
 }
 
 //!HOOK CHROMA
