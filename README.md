@@ -4,9 +4,7 @@
 The shaders implement chroma upscaling based on the closed least squares solution for linear regression, [inspired by the adoption of the same technique in modern video codecs](https://arxiv.org/abs/1711.03951).
 Since a simple linear regression obviously doesn't take into account pixel distance, the prediction is mixed with the output of a normal resampling filter based on how high the correlation between luma and chroma is.
 
-The repo contains 2 variants of the shader:
-- `CfL_Prediction.glsl`: Main variant, attempts to recreate as much detail as possible without introducing too many artifacts. You can control which local linear regressions you want to use with `USE_12_TAP_REGRESSION` and `USE_4_TAP_REGRESSION`. The latter is turned off by default because it's too aggressive and it can introduce some nasty artifacts sometimes.
-- `CfL_Prediction_debug.glsl`: This only exists to help me identify possible issues. It replaces the spatial portion of the output with solid gray and allows the linear regressions to have full contribution at max correlation.
+You can control which local linear regressions you want to use with `USE_12_TAP_REGRESSION` and `USE_4_TAP_REGRESSION`. The latter is turned off by default because it's too aggressive and it can introduce some nasty artifacts sometimes.
 
 The shader is experimental and minor improvements are being made over time. If you have any suggestions, feel free to send them.
 
