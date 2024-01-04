@@ -100,9 +100,12 @@ vec4 hook() {
 
 #ifdef HOOKED_gather
     vec2 quad_idx[4] = {{0.0, 0.0}, {2.0, 0.0}, {0.0, 2.0}, {2.0, 2.0}};
+
+    vec4 luma_quads[4];
     vec4 chroma_quads[4][2];
 
     for (int i = 0; i < 4; i++) {
+        luma_quads[i] = LUMA_LOWRES_gather(vec2((fp + quad_idx[i]) * HOOKED_pt), 0);
         chroma_quads[i][0] = HOOKED_gather(vec2((fp + quad_idx[i]) * HOOKED_pt), 0);
         chroma_quads[i][1] = HOOKED_gather(vec2((fp + quad_idx[i]) * HOOKED_pt), 1);
     }
@@ -124,12 +127,6 @@ vec4 hook() {
     chroma_pixels[13] = vec2(chroma_quads[2][0].y, chroma_quads[2][1].y);
     chroma_pixels[14] = vec2(chroma_quads[3][0].x, chroma_quads[3][1].x);
     chroma_pixels[15] = vec2(chroma_quads[3][0].y, chroma_quads[3][1].y);
-#if (USE_12_TAP_REGRESSION == 1 || USE_4_TAP_REGRESSION == 1)
-    vec4 luma_quads[4];
-
-    for (int i = 0; i < 4; i++) {
-        luma_quads[i] = LUMA_LOWRES_gather(vec2((fp + quad_idx[i]) * HOOKED_pt), 0);
-    }
 
     float luma_pixels[16];
     luma_pixels[0]  = luma_quads[0].w;
@@ -148,37 +145,32 @@ vec4 hook() {
     luma_pixels[13] = luma_quads[2].y;
     luma_pixels[14] = luma_quads[3].x;
     luma_pixels[15] = luma_quads[3].y;
-#endif
 #else
     vec2 pix_idx[16] = {{-0.5,-0.5}, { 0.5,-0.5}, { 1.5,-0.5}, { 2.5,-0.5},
                         {-0.5, 0.5}, { 0.5, 0.5}, { 1.5, 0.5}, { 2.5, 0.5},
                         {-0.5, 1.5}, { 0.5, 1.5}, { 1.5, 1.5}, { 2.5, 1.5},
                         {-0.5, 2.5}, { 0.5, 2.5}, { 1.5, 2.5}, { 2.5, 2.5}};
-#if (USE_12_TAP_REGRESSION == 1 || USE_4_TAP_REGRESSION == 1)
+
     float luma_pixels[16];
     vec2 chroma_pixels[16];
+
     for (int i = 0; i < 16; i++) {
         luma_pixels[i] = HOOKED_tex(vec2((fp + pix_idx[i]) * HOOKED_pt)).x;
         chroma_pixels[i] = HOOKED_tex(vec2((fp + pix_idx[i]) * HOOKED_pt)).xy;
     }
-#else
-    vec2 chroma_pixels[16];
-    for (int i = 0; i < 16; i++) {
-        chroma_pixels[i] = HOOKED_tex(vec2((fp + pix_idx[i]) * HOOKED_pt)).xy;
-    }
-#endif
 #endif
 
 #if (DEBUG == 1)
     vec2 chroma_spatial = vec2(0.5);
     mix_coeff = 1.0;
 #else
-    vec2 chroma_min = min(min(min(chroma_pixels[5], chroma_pixels[6]), chroma_pixels[9]), chroma_pixels[10]);
-    vec2 chroma_max = max(max(max(chroma_pixels[5], chroma_pixels[6]), chroma_pixels[9]), chroma_pixels[10]);
-
     float wd[16];
     float wt = 0.0;
     vec2 ct = vec2(0.0);
+
+    vec2 chroma_min = min(min(min(chroma_pixels[5], chroma_pixels[6]), chroma_pixels[9]), chroma_pixels[10]);
+    vec2 chroma_max = max(max(max(chroma_pixels[5], chroma_pixels[6]), chroma_pixels[9]), chroma_pixels[10]);
+
     const int dx[16] = {-1, 0, 1, 2, -1, 0, 1, 2, -1, 0, 1, 2, -1, 0, 1, 2};
     const int dy[16] = {-1, -1, -1, -1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2};
 
@@ -196,17 +188,19 @@ vec4 hook() {
     const int i12[12] = {1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14};
 
     float luma_avg_12 = 0.0;
+    float luma_var_12 = 0.0;
     vec2 chroma_avg_12 = vec2(0.0);
+    vec2 chroma_var_12 = vec2(0.0);
+    vec2 luma_chroma_cov_12 = vec2(0.0);
+
     for(int i = 0; i < 12; i++) {
         luma_avg_12 += luma_pixels[i12[i]];
         chroma_avg_12 += chroma_pixels[i12[i]];
     }
+
     luma_avg_12 /= 12.0;
     chroma_avg_12 /= 12.0;
 
-    float luma_var_12 = 0.0;
-    vec2 chroma_var_12 = vec2(0.0);
-    vec2 luma_chroma_cov_12 = vec2(0.0);
     for(int i = 0; i < 12; i++) {
         luma_var_12 += pow(luma_pixels[i12[i]] - luma_avg_12, 2.0);
         chroma_var_12 += pow(chroma_pixels[i12[i]] - chroma_avg_12, vec2(2.0));
@@ -227,16 +221,18 @@ vec4 hook() {
     const int i4[4] = {5, 6, 9, 10};
 
     float luma_avg_4 = 0.0;
+    float luma_var_4 = 0.0;
     vec2 chroma_avg_4 = vec2(0.0);
+    vec2 luma_chroma_cov_4 = vec2(0.0);
+
     for(int i = 0; i < 4; i++) {
         luma_avg_4 += luma_pixels[i4[i]];
         chroma_avg_4 += chroma_pixels[i4[i]];
     }
+
     luma_avg_4 /= 4.0;
     chroma_avg_4 /= 4.0;
 
-    float luma_var_4 = 0.0;
-    vec2 luma_chroma_cov_4 = vec2(0.0);
     for(int i = 0; i < 4; i++) {
         luma_var_4 += pow(luma_pixels[i4[i]] - luma_avg_4, 2.0);
         luma_chroma_cov_4 += (luma_pixels[i4[i]] - luma_avg_4) * (chroma_pixels[i4[i]] - chroma_avg_4);
