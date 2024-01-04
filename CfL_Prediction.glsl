@@ -99,7 +99,7 @@ vec4 hook() {
     pp -= fp;
 
 #ifdef HOOKED_gather
-    vec2 quad_idx[4] = {{0.0, 0.0}, { 2.0, 0.0}, { 0.0, 2.0}, { 2.0, 2.0}};
+    vec2 quad_idx[4] = {{0.0, 0.0}, {2.0, 0.0}, {0.0, 2.0}, {2.0, 2.0}};
     vec4 chroma_quads[4][2];
 
     for (int i = 0; i < 4; i++) {
@@ -168,6 +168,7 @@ vec4 hook() {
     }
 #endif
 #endif
+
 #if (DEBUG == 1)
     vec2 chroma_spatial = vec2(0.5);
     mix_coeff = 1.0;
@@ -190,6 +191,7 @@ vec4 hook() {
     vec2 chroma_spatial = clamp(ct / wt, 0.0, 1.0);
     chroma_spatial = mix(chroma_spatial, clamp(chroma_spatial, chroma_min, chroma_max), ar_strength);
 #endif
+
 #if (USE_12_TAP_REGRESSION == 1 || USE_4_TAP_REGRESSION == 1)
     const int i12[12] = {1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14};
 
@@ -214,11 +216,13 @@ vec4 hook() {
     vec2 corr = abs(luma_chroma_cov_12 / max(sqrt(luma_var_12 * chroma_var_12), 1e-6));
     corr = clamp(corr, 0.0, 1.0);
 #endif
+
 #if (USE_12_TAP_REGRESSION == 1)
     vec2 alpha_12 = luma_chroma_cov_12 / max(luma_var_12, 1e-6);
     vec2 beta_12 = chroma_avg_12 - alpha_12 * luma_avg_12;
     vec2 chroma_pred_12 = clamp(alpha_12 * luma_zero + beta_12, 0.0, 1.0);
 #endif
+
 #if (USE_4_TAP_REGRESSION == 1)
     const int i4[4] = {5, 6, 9, 10};
 
@@ -242,6 +246,7 @@ vec4 hook() {
     vec2 beta_4 = chroma_avg_4 - alpha_4 * luma_avg_4;
     vec2 chroma_pred_4 = clamp(alpha_4 * luma_zero + beta_4, 0.0, 1.0);
 #endif
+
 #if (USE_12_TAP_REGRESSION == 1 && USE_4_TAP_REGRESSION == 1)
     output_pix.xy = mix(chroma_spatial, mix(chroma_pred_4, chroma_pred_12, 0.5), pow(corr, vec2(2.0)) * mix_coeff);
 #elif (USE_12_TAP_REGRESSION == 1 && USE_4_TAP_REGRESSION == 0)
@@ -251,6 +256,7 @@ vec4 hook() {
 #else
     output_pix.xy = chroma_spatial;
 #endif
+
     output_pix.xy = clamp(output_pix.xy, 0.0, 1.0);
     return output_pix;
 }
