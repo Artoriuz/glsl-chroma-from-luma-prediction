@@ -82,12 +82,15 @@ vec4 hook() {
 #define USE_4_TAP_REGRESSION 0
 
 vec4 hook() {
+    float mix_coeff = 1.0;
+
     vec4 output_pix = vec4(0.0, 0.0, 0.0, 1.0);
     float luma_zero = LUMA_texOff(0.0).x;
 
     vec2 pp = HOOKED_pos * HOOKED_size - vec2(0.5);
     vec2 fp = floor(pp);
     pp -= fp;
+
 #ifdef HOOKED_gather
     vec4 chroma_quads[4][2];
     chroma_quads[0][0] = HOOKED_gather(vec2((fp + vec2(0.0, 0.0)) * HOOKED_pt), 0);
@@ -99,19 +102,23 @@ vec4 hook() {
     chroma_quads[2][1] = HOOKED_gather(vec2((fp + vec2(0.0, 2.0)) * HOOKED_pt), 1);
     chroma_quads[3][1] = HOOKED_gather(vec2((fp + vec2(2.0, 2.0)) * HOOKED_pt), 1);
 
-    vec2 chroma_pixels[12];
-    chroma_pixels[0]  = vec2(chroma_quads[0][0].z, chroma_quads[0][1].z);
-    chroma_pixels[1]  = vec2(chroma_quads[1][0].w, chroma_quads[1][1].w);
-    chroma_pixels[2]  = vec2(chroma_quads[0][0].x, chroma_quads[0][1].x);
-    chroma_pixels[3]  = vec2(chroma_quads[0][0].y, chroma_quads[0][1].y);
-    chroma_pixels[4]  = vec2(chroma_quads[1][0].x, chroma_quads[1][1].x);
-    chroma_pixels[5]  = vec2(chroma_quads[1][0].y, chroma_quads[1][1].y);
-    chroma_pixels[6]  = vec2(chroma_quads[2][0].w, chroma_quads[2][1].w);
-    chroma_pixels[7]  = vec2(chroma_quads[2][0].z, chroma_quads[2][1].z);
-    chroma_pixels[8]  = vec2(chroma_quads[3][0].w, chroma_quads[3][1].w);
-    chroma_pixels[9]  = vec2(chroma_quads[3][0].z, chroma_quads[3][1].z);
-    chroma_pixels[10] = vec2(chroma_quads[2][0].y, chroma_quads[2][1].y);
-    chroma_pixels[11] = vec2(chroma_quads[3][0].x, chroma_quads[3][1].x);
+    vec2 chroma_pixels[16];
+    chroma_pixels[0]  = vec2(chroma_quads[0][0].w, chroma_quads[0][1].w);
+    chroma_pixels[1]  = vec2(chroma_quads[0][0].z, chroma_quads[0][1].z);
+    chroma_pixels[2]  = vec2(chroma_quads[1][0].w, chroma_quads[1][1].w);
+    chroma_pixels[3]  = vec2(chroma_quads[1][0].z, chroma_quads[1][1].z);
+    chroma_pixels[4]  = vec2(chroma_quads[0][0].x, chroma_quads[0][1].x);
+    chroma_pixels[5]  = vec2(chroma_quads[0][0].y, chroma_quads[0][1].y);
+    chroma_pixels[6]  = vec2(chroma_quads[1][0].x, chroma_quads[1][1].x);
+    chroma_pixels[7]  = vec2(chroma_quads[1][0].y, chroma_quads[1][1].y);
+    chroma_pixels[8]  = vec2(chroma_quads[2][0].w, chroma_quads[2][1].w);
+    chroma_pixels[9]  = vec2(chroma_quads[2][0].z, chroma_quads[2][1].z);
+    chroma_pixels[10] = vec2(chroma_quads[3][0].w, chroma_quads[3][1].w);
+    chroma_pixels[11] = vec2(chroma_quads[3][0].z, chroma_quads[3][1].z);
+    chroma_pixels[12] = vec2(chroma_quads[2][0].x, chroma_quads[2][1].x);
+    chroma_pixels[13] = vec2(chroma_quads[2][0].y, chroma_quads[2][1].y);
+    chroma_pixels[14] = vec2(chroma_quads[3][0].x, chroma_quads[3][1].x);
+    chroma_pixels[15] = vec2(chroma_quads[3][0].y, chroma_quads[3][1].y);
 #if (USE_12_TAP_REGRESSION == 1 || USE_4_TAP_REGRESSION == 1)
     vec4 luma_quads[4];
     luma_quads[0] = LUMA_LOWRES_gather(vec2((fp + vec2(0.0, 0.0)) * HOOKED_pt), 0);
@@ -119,77 +126,100 @@ vec4 hook() {
     luma_quads[2] = LUMA_LOWRES_gather(vec2((fp + vec2(0.0, 2.0)) * HOOKED_pt), 0);
     luma_quads[3] = LUMA_LOWRES_gather(vec2((fp + vec2(2.0, 2.0)) * HOOKED_pt), 0);
 
-    float luma_pixels[12];
-    luma_pixels[0]  = luma_quads[0].z;
-    luma_pixels[1]  = luma_quads[1].w;
-    luma_pixels[2]  = luma_quads[0].x;
-    luma_pixels[3]  = luma_quads[0].y;
-    luma_pixels[4]  = luma_quads[1].x;
-    luma_pixels[5]  = luma_quads[1].y;
-    luma_pixels[6]  = luma_quads[2].w;
-    luma_pixels[7]  = luma_quads[2].z;
-    luma_pixels[8]  = luma_quads[3].w;
-    luma_pixels[9]  = luma_quads[3].z;
-    luma_pixels[10] = luma_quads[2].y;
-    luma_pixels[11] = luma_quads[3].x;
+    float luma_pixels[16];
+    luma_pixels[0]  = luma_quads[0].w;
+    luma_pixels[1]  = luma_quads[0].z;
+    luma_pixels[2]  = luma_quads[1].w;
+    luma_pixels[3]  = luma_quads[1].z;
+    luma_pixels[4]  = luma_quads[0].x;
+    luma_pixels[5]  = luma_quads[0].y;
+    luma_pixels[6]  = luma_quads[1].x;
+    luma_pixels[7]  = luma_quads[1].y;
+    luma_pixels[8]  = luma_quads[2].w;
+    luma_pixels[9]  = luma_quads[2].z;
+    luma_pixels[10] = luma_quads[3].w;
+    luma_pixels[11] = luma_quads[3].z;
+    luma_pixels[12] = luma_quads[2].x;
+    luma_pixels[13] = luma_quads[2].y;
+    luma_pixels[14] = luma_quads[3].x;
+    luma_pixels[15] = luma_quads[3].y;
 #endif
 #else
-    vec2 chroma_pixels[12];
-    chroma_pixels[0]  = HOOKED_tex(vec2((fp + vec2(0.5, -0.5)) * HOOKED_pt)).xy;
-    chroma_pixels[1]  = HOOKED_tex(vec2((fp + vec2(1.5, -0.5)) * HOOKED_pt)).xy;
-    chroma_pixels[2]  = HOOKED_tex(vec2((fp + vec2(-0.5, 0.5)) * HOOKED_pt)).xy;
-    chroma_pixels[3]  = HOOKED_tex(vec2((fp + vec2( 0.5, 0.5)) * HOOKED_pt)).xy;
-    chroma_pixels[4]  = HOOKED_tex(vec2((fp + vec2( 1.5, 0.5)) * HOOKED_pt)).xy;
-    chroma_pixels[5]  = HOOKED_tex(vec2((fp + vec2( 2.5, 0.5)) * HOOKED_pt)).xy;
-    chroma_pixels[6]  = HOOKED_tex(vec2((fp + vec2(-0.5, 1.5)) * HOOKED_pt)).xy;
-    chroma_pixels[7]  = HOOKED_tex(vec2((fp + vec2( 0.5, 1.5)) * HOOKED_pt)).xy;
-    chroma_pixels[8]  = HOOKED_tex(vec2((fp + vec2( 1.5, 1.5)) * HOOKED_pt)).xy;
-    chroma_pixels[9]  = HOOKED_tex(vec2((fp + vec2( 2.5, 1.5)) * HOOKED_pt)).xy;
-    chroma_pixels[10] = HOOKED_tex(vec2((fp + vec2( 0.5, 2.5)) * HOOKED_pt)).xy;
-    chroma_pixels[11] = HOOKED_tex(vec2((fp + vec2( 1.5, 2.5)) * HOOKED_pt)).xy;
+    vec2 chroma_pixels[16];
+    chroma_pixels[0]  = HOOKED_tex(vec2((fp + vec2(-0.5,-0.5)) * HOOKED_pt)).xy;
+    chroma_pixels[1]  = HOOKED_tex(vec2((fp + vec2( 0.5,-0.5)) * HOOKED_pt)).xy;
+    chroma_pixels[2]  = HOOKED_tex(vec2((fp + vec2( 1.5,-0.5)) * HOOKED_pt)).xy;
+    chroma_pixels[3]  = HOOKED_tex(vec2((fp + vec2( 2.5,-0.5)) * HOOKED_pt)).xy;
+    chroma_pixels[4]  = HOOKED_tex(vec2((fp + vec2(-0.5, 0.5)) * HOOKED_pt)).xy;
+    chroma_pixels[5]  = HOOKED_tex(vec2((fp + vec2( 0.5, 0.5)) * HOOKED_pt)).xy;
+    chroma_pixels[6]  = HOOKED_tex(vec2((fp + vec2( 1.5, 0.5)) * HOOKED_pt)).xy;
+    chroma_pixels[7]  = HOOKED_tex(vec2((fp + vec2( 2.5, 0.5)) * HOOKED_pt)).xy;
+    chroma_pixels[8]  = HOOKED_tex(vec2((fp + vec2(-0.5, 1.5)) * HOOKED_pt)).xy;
+    chroma_pixels[9]  = HOOKED_tex(vec2((fp + vec2( 0.5, 1.5)) * HOOKED_pt)).xy;
+    chroma_pixels[10] = HOOKED_tex(vec2((fp + vec2( 1.5, 1.5)) * HOOKED_pt)).xy;
+    chroma_pixels[11] = HOOKED_tex(vec2((fp + vec2( 2.5, 1.5)) * HOOKED_pt)).xy;
+    chroma_pixels[12] = HOOKED_tex(vec2((fp + vec2(-0.5, 2.5)) * HOOKED_pt)).xy;
+    chroma_pixels[13] = HOOKED_tex(vec2((fp + vec2( 0.5, 2.5)) * HOOKED_pt)).xy;
+    chroma_pixels[14] = HOOKED_tex(vec2((fp + vec2( 1.5, 2.5)) * HOOKED_pt)).xy;
+    chroma_pixels[15] = HOOKED_tex(vec2((fp + vec2( 2.5, 2.5)) * HOOKED_pt)).xy;
 #if (USE_12_TAP_REGRESSION == 1 || USE_4_TAP_REGRESSION == 1)
-    float luma_pixels[12];
-    luma_pixels[0]  = LUMA_LOWRES_tex(vec2((fp + vec2(0.5, -0.5)) * HOOKED_pt)).x;
-    luma_pixels[1]  = LUMA_LOWRES_tex(vec2((fp + vec2(1.5, -0.5)) * HOOKED_pt)).x;
-    luma_pixels[2]  = LUMA_LOWRES_tex(vec2((fp + vec2(-0.5, 0.5)) * HOOKED_pt)).x;
-    luma_pixels[3]  = LUMA_LOWRES_tex(vec2((fp + vec2( 0.5, 0.5)) * HOOKED_pt)).x;
-    luma_pixels[4]  = LUMA_LOWRES_tex(vec2((fp + vec2( 1.5, 0.5)) * HOOKED_pt)).x;
-    luma_pixels[5]  = LUMA_LOWRES_tex(vec2((fp + vec2( 2.5, 0.5)) * HOOKED_pt)).x;
-    luma_pixels[6]  = LUMA_LOWRES_tex(vec2((fp + vec2(-0.5, 1.5)) * HOOKED_pt)).x;
-    luma_pixels[7]  = LUMA_LOWRES_tex(vec2((fp + vec2( 0.5, 1.5)) * HOOKED_pt)).x;
-    luma_pixels[8]  = LUMA_LOWRES_tex(vec2((fp + vec2( 1.5, 1.5)) * HOOKED_pt)).x;
-    luma_pixels[9]  = LUMA_LOWRES_tex(vec2((fp + vec2( 2.5, 1.5)) * HOOKED_pt)).x;
-    luma_pixels[10] = LUMA_LOWRES_tex(vec2((fp + vec2( 0.5, 2.5)) * HOOKED_pt)).x;
-    luma_pixels[11] = LUMA_LOWRES_tex(vec2((fp + vec2( 1.5, 2.5)) * HOOKED_pt)).x;
+    float luma_pixels[16];
+    luma_pixels[0]  = LUMA_LOWRES_tex(vec2((fp + vec2(-0.5,-0.5)) * HOOKED_pt)).x;
+    luma_pixels[1]  = LUMA_LOWRES_tex(vec2((fp + vec2( 0.5,-0.5)) * HOOKED_pt)).x;
+    luma_pixels[2]  = LUMA_LOWRES_tex(vec2((fp + vec2( 1.5,-0.5)) * HOOKED_pt)).x;
+    luma_pixels[3]  = LUMA_LOWRES_tex(vec2((fp + vec2( 2.5,-0.5)) * HOOKED_pt)).x;
+    luma_pixels[4]  = LUMA_LOWRES_tex(vec2((fp + vec2(-0.5, 0.5)) * HOOKED_pt)).x;
+    luma_pixels[5]  = LUMA_LOWRES_tex(vec2((fp + vec2( 0.5, 0.5)) * HOOKED_pt)).x;
+    luma_pixels[6]  = LUMA_LOWRES_tex(vec2((fp + vec2( 1.5, 0.5)) * HOOKED_pt)).x;
+    luma_pixels[7]  = LUMA_LOWRES_tex(vec2((fp + vec2( 2.5, 0.5)) * HOOKED_pt)).x;
+    luma_pixels[8]  = LUMA_LOWRES_tex(vec2((fp + vec2(-0.5, 1.5)) * HOOKED_pt)).x;
+    luma_pixels[9]  = LUMA_LOWRES_tex(vec2((fp + vec2( 0.5, 1.5)) * HOOKED_pt)).x;
+    luma_pixels[10] = LUMA_LOWRES_tex(vec2((fp + vec2( 1.5, 1.5)) * HOOKED_pt)).x;
+    luma_pixels[11] = LUMA_LOWRES_tex(vec2((fp + vec2( 2.5, 1.5)) * HOOKED_pt)).x;
+    luma_pixels[12] = LUMA_LOWRES_tex(vec2((fp + vec2(-0.5, 2.5)) * HOOKED_pt)).x;
+    luma_pixels[13] = LUMA_LOWRES_tex(vec2((fp + vec2( 0.5, 2.5)) * HOOKED_pt)).x;
+    luma_pixels[14] = LUMA_LOWRES_tex(vec2((fp + vec2( 1.5, 2.5)) * HOOKED_pt)).x;
+    luma_pixels[15] = LUMA_LOWRES_tex(vec2((fp + vec2( 2.5, 2.5)) * HOOKED_pt)).x;
 #endif
 #endif
     vec2 chroma_spatial = vec2(0.5);
+
 #if (USE_12_TAP_REGRESSION == 1 || USE_4_TAP_REGRESSION == 1)
     float luma_avg_12 = 0.0;
-    for(int i = 0; i < 12; i++) {
-        luma_avg_12 += luma_pixels[i];
+    for(int i = 0; i < 16; i++) {
+        if (i != 0 && i != 3 && i != 12 && i != 15) {
+            luma_avg_12 += luma_pixels[i];
+        }
     }
     luma_avg_12 /= 12.0;
 
     float luma_var_12 = 0.0;
-    for(int i = 0; i < 12; i++) {
-        luma_var_12 += pow(luma_pixels[i] - luma_avg_12, 2.0);
+    for(int i = 0; i < 16; i++) {
+        if (i != 0 && i != 3 && i != 12 && i != 15) {
+            luma_var_12 += pow(luma_pixels[i] - luma_avg_12, 2.0);
+        }
     }
 
     vec2 chroma_avg_12 = vec2(0.0);
-    for(int i = 0; i < 12; i++) {
-        chroma_avg_12 += chroma_pixels[i];
+    for(int i = 0; i < 16; i++) {
+        if (i != 0 && i != 3 && i != 12 && i != 15) {
+            chroma_avg_12 += chroma_pixels[i];
+        }
     }
     chroma_avg_12 /= 12.0;
 
     vec2 chroma_var_12 = vec2(0.0);
-    for(int i = 0; i < 12; i++) {
-        chroma_var_12 += pow(chroma_pixels[i] - chroma_avg_12, vec2(2.0));
+    for(int i = 0; i < 16; i++) {
+        if (i != 0 && i != 3 && i != 12 && i != 15) {
+            chroma_var_12 += pow(chroma_pixels[i] - chroma_avg_12, vec2(2.0));
+        }
     }
 
     vec2 luma_chroma_cov_12 = vec2(0.0);
-    for(int i = 0; i < 12; i++) {
-        luma_chroma_cov_12 += (luma_pixels[i] - luma_avg_12) * (chroma_pixels[i] - chroma_avg_12);
+    for(int i = 0; i < 16; i++) {
+        if (i != 0 && i != 3 && i != 12 && i != 15) {
+            luma_chroma_cov_12 += (luma_pixels[i] - luma_avg_12) * (chroma_pixels[i] - chroma_avg_12);
+        }
     }
 
     vec2 corr = abs(luma_chroma_cov_12 / max(sqrt(luma_var_12 * chroma_var_12), 1e-6));
@@ -232,11 +262,11 @@ vec4 hook() {
     vec2 chroma_pred_4 = clamp(alpha_4 * luma_zero + beta_4, 0.0, 1.0);
 #endif
 #if (USE_12_TAP_REGRESSION == 1 && USE_4_TAP_REGRESSION == 1)
-    output_pix.xy = mix(chroma_spatial, mix(chroma_pred_4, chroma_pred_12, 0.5), pow(corr, vec2(2.0)));
+    output_pix.xy = mix(chroma_spatial, mix(chroma_pred_4, chroma_pred_12, 0.5), pow(corr, vec2(2.0)) * mix_coeff);
 #elif (USE_12_TAP_REGRESSION == 1 && USE_4_TAP_REGRESSION == 0)
-    output_pix.xy = mix(chroma_spatial, chroma_pred_12, pow(corr, vec2(2.0)));
+    output_pix.xy = mix(chroma_spatial, chroma_pred_12, pow(corr, vec2(2.0)) * mix_coeff);
 #elif (USE_12_TAP_REGRESSION == 0 && USE_4_TAP_REGRESSION == 1)
-    output_pix.xy = mix(chroma_spatial, chroma_pred_4, pow(corr, vec2(2.0)));
+    output_pix.xy = mix(chroma_spatial, chroma_pred_4, pow(corr, vec2(2.0)) * mix_coeff);
 #else
     output_pix.xy = chroma_spatial;
 #endif
