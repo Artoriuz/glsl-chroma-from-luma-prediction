@@ -232,30 +232,30 @@ vec4 hook() {
 #endif
 #if (USE_4_TAP_REGRESSION == 1)
     float luma_avg_4 = 0.0;
-    luma_avg_4 += luma_pixels[3];
-    luma_avg_4 += luma_pixels[4];
-    luma_avg_4 += luma_pixels[7];
-    luma_avg_4 += luma_pixels[8];
+    luma_avg_4 += luma_pixels[5];
+    luma_avg_4 += luma_pixels[6];
+    luma_avg_4 += luma_pixels[9];
+    luma_avg_4 += luma_pixels[10];
     luma_avg_4 /= 4.0;
 
     float luma_var_4 = 0.0;
-    luma_var_4 += pow(luma_pixels[3] - luma_avg_4, 2.0);
-    luma_var_4 += pow(luma_pixels[4] - luma_avg_4, 2.0);
-    luma_var_4 += pow(luma_pixels[7] - luma_avg_4, 2.0);
-    luma_var_4 += pow(luma_pixels[8] - luma_avg_4, 2.0);
+    luma_var_4 += pow(luma_pixels[5]  - luma_avg_4, 2.0);
+    luma_var_4 += pow(luma_pixels[6]  - luma_avg_4, 2.0);
+    luma_var_4 += pow(luma_pixels[9]  - luma_avg_4, 2.0);
+    luma_var_4 += pow(luma_pixels[10] - luma_avg_4, 2.0);
 
     vec2 chroma_avg_4 = vec2(0.0);
-    chroma_avg_4 += chroma_pixels[3];
-    chroma_avg_4 += chroma_pixels[4];
-    chroma_avg_4 += chroma_pixels[7];
-    chroma_avg_4 += chroma_pixels[8];
+    chroma_avg_4 += chroma_pixels[5];
+    chroma_avg_4 += chroma_pixels[6];
+    chroma_avg_4 += chroma_pixels[9];
+    chroma_avg_4 += chroma_pixels[10];
     chroma_avg_4 /= 4.0;
 
     vec2 luma_chroma_cov_4 = vec2(0.0);
-    luma_chroma_cov_4 += (luma_pixels[3] - luma_avg_4) * (chroma_pixels[3] - chroma_avg_4);
-    luma_chroma_cov_4 += (luma_pixels[4] - luma_avg_4) * (chroma_pixels[4] - chroma_avg_4);
-    luma_chroma_cov_4 += (luma_pixels[7] - luma_avg_4) * (chroma_pixels[7] - chroma_avg_4);
-    luma_chroma_cov_4 += (luma_pixels[8] - luma_avg_4) * (chroma_pixels[8] - chroma_avg_4);
+    luma_chroma_cov_4 += (luma_pixels[5]  - luma_avg_4) * (chroma_pixels[5]  - chroma_avg_4);
+    luma_chroma_cov_4 += (luma_pixels[6]  - luma_avg_4) * (chroma_pixels[6]  - chroma_avg_4);
+    luma_chroma_cov_4 += (luma_pixels[9]  - luma_avg_4) * (chroma_pixels[9]  - chroma_avg_4);
+    luma_chroma_cov_4 += (luma_pixels[10] - luma_avg_4) * (chroma_pixels[10] - chroma_avg_4);
 
     vec2 alpha_4 = luma_chroma_cov_4 / max(luma_var_4, 1e-4);
     vec2 beta_4 = chroma_avg_4 - alpha_4 * luma_avg_4;
