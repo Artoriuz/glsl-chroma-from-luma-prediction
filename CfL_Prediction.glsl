@@ -188,17 +188,8 @@ vec4 hook() {
     luma_pixels[15] = LUMA_LOWRES_tex(vec2((fp + vec2( 2.5, 2.5)) * HOOKED_pt)).x;
 #endif
 #endif
-    vec2 chroma_min = vec2(1e8);
-    chroma_min = min(chroma_min, chroma_pixels[5]);
-    chroma_min = min(chroma_min, chroma_pixels[6]);
-    chroma_min = min(chroma_min, chroma_pixels[9]);
-    chroma_min = min(chroma_min, chroma_pixels[10]);
-
-    vec2 chroma_max = vec2(1e-8);
-    chroma_max = max(chroma_max, chroma_pixels[5]);
-    chroma_max = max(chroma_max, chroma_pixels[6]);
-    chroma_max = max(chroma_max, chroma_pixels[9]);
-    chroma_max = max(chroma_max, chroma_pixels[10]);
+    vec2 chroma_min = min(min(min(chroma_pixels[5], chroma_pixels[6]), chroma_pixels[9]), chroma_pixels[10]);
+    vec2 chroma_max = max(max(max(chroma_pixels[5], chroma_pixels[6]), chroma_pixels[9]), chroma_pixels[10]);
 
     float wd[16];
     float wt = 0.0;
