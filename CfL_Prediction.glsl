@@ -220,44 +220,44 @@ vec4 hook() {
 #endif
 
 #if (USE_8_TAP_REGRESSIONS == 1)
-    const int i8v[8] = {1, 2, 5, 6, 9, 10, 13, 14};
-    const int i8h[8] = {4, 5, 6, 7, 8, 9, 10, 11};
+    const int i8y[8] = {1, 2, 5, 6, 9, 10, 13, 14};
+    const int i8x[8] = {4, 5, 6, 7, 8, 9, 10, 11};
 
-    float luma_avg_8v = 0.0;
-    float luma_avg_8h = 0.0;
-    float luma_var_8v = 0.0;
-    float luma_var_8h = 0.0;
-    vec2 chroma_avg_8v = vec2(0.0);
-    vec2 chroma_avg_8h = vec2(0.0);
-    vec2 luma_chroma_cov_8v = vec2(0.0);
-    vec2 luma_chroma_cov_8h = vec2(0.0);
-
-    for(int i = 0; i < 8; i++) {
-        luma_avg_8v += luma_pixels[i8v[i]];
-        luma_avg_8h += luma_pixels[i8h[i]];
-        chroma_avg_8v += chroma_pixels[i8v[i]];
-        chroma_avg_8h += chroma_pixels[i8h[i]];
-    }
-
-    luma_avg_8v /= 8.0;
-    luma_avg_8h /= 8.0;
-    chroma_avg_8v /= 8.0;
-    chroma_avg_8h /= 8.0;
+    float luma_avg_8y = 0.0;
+    float luma_avg_8x = 0.0;
+    float luma_var_8y = 0.0;
+    float luma_var_8x = 0.0;
+    vec2 chroma_avg_8y = vec2(0.0);
+    vec2 chroma_avg_8x = vec2(0.0);
+    vec2 luma_chroma_cov_8y = vec2(0.0);
+    vec2 luma_chroma_cov_8x = vec2(0.0);
 
     for(int i = 0; i < 8; i++) {
-        luma_var_8v += pow(luma_pixels[i8v[i]] - luma_avg_8v, 2.0);
-        luma_var_8h += pow(luma_pixels[i8h[i]] - luma_avg_8h, 2.0);
-        luma_chroma_cov_8v += (luma_pixels[i8v[i]] - luma_avg_8v) * (chroma_pixels[i8v[i]] - chroma_avg_8v);
-        luma_chroma_cov_8h += (luma_pixels[i8h[i]] - luma_avg_8h) * (chroma_pixels[i8h[i]] - chroma_avg_8h);
+        luma_avg_8y += luma_pixels[i8y[i]];
+        luma_avg_8x += luma_pixels[i8x[i]];
+        chroma_avg_8y += chroma_pixels[i8y[i]];
+        chroma_avg_8x += chroma_pixels[i8x[i]];
     }
 
-    vec2 alpha_8v = luma_chroma_cov_8v / max(luma_var_8v, 1e-6);
-    vec2 alpha_8h = luma_chroma_cov_8h / max(luma_var_8h, 1e-6);
-    vec2 beta_8v = chroma_avg_8v - alpha_8v * luma_avg_8v;
-    vec2 beta_8h = chroma_avg_8h - alpha_8h * luma_avg_8h;
-    vec2 chroma_pred_8v = clamp(alpha_8v * luma_zero + beta_8v, 0.0, 1.0);
-    vec2 chroma_pred_8h = clamp(alpha_8h * luma_zero + beta_8h, 0.0, 1.0);
-    vec2 chroma_pred_8 = mix(chroma_pred_8v, chroma_pred_8h, 0.5);
+    luma_avg_8y /= 8.0;
+    luma_avg_8x /= 8.0;
+    chroma_avg_8y /= 8.0;
+    chroma_avg_8x /= 8.0;
+
+    for(int i = 0; i < 8; i++) {
+        luma_var_8y += pow(luma_pixels[i8y[i]] - luma_avg_8y, 2.0);
+        luma_var_8x += pow(luma_pixels[i8x[i]] - luma_avg_8x, 2.0);
+        luma_chroma_cov_8y += (luma_pixels[i8y[i]] - luma_avg_8y) * (chroma_pixels[i8y[i]] - chroma_avg_8y);
+        luma_chroma_cov_8x += (luma_pixels[i8x[i]] - luma_avg_8x) * (chroma_pixels[i8x[i]] - chroma_avg_8x);
+    }
+
+    vec2 alpha_8y = luma_chroma_cov_8y / max(luma_var_8y, 1e-6);
+    vec2 alpha_8x = luma_chroma_cov_8x / max(luma_var_8x, 1e-6);
+    vec2 beta_8y = chroma_avg_8y - alpha_8y * luma_avg_8y;
+    vec2 beta_8x = chroma_avg_8x - alpha_8x * luma_avg_8x;
+    vec2 chroma_pred_8y = clamp(alpha_8y * luma_zero + beta_8y, 0.0, 1.0);
+    vec2 chroma_pred_8x = clamp(alpha_8x * luma_zero + beta_8x, 0.0, 1.0);
+    vec2 chroma_pred_8 = mix(chroma_pred_8y, chroma_pred_8x, 0.5);
 #endif
 
 #if (USE_4_TAP_REGRESSION == 1)
@@ -287,7 +287,7 @@ vec4 hook() {
 #endif
 
 #if (USE_12_TAP_REGRESSION == 1 && USE_8_TAP_REGRESSIONS == 1 && USE_4_TAP_REGRESSION == 1)
-    output_pix.xy = mix(chroma_spatial, mix(mix(chroma_pred_4, chroma_pred_12, 0.5), chroma_pred_8, 0.5), pow(corr, vec2(2.0)) * mix_coeff);
+    output_pix.xy = mix(chroma_spatial, mix(mix(chroma_pred_4, chroma_pred_12, 0.5), chroma_pred_8, 1.0 / 3.0), pow(corr, vec2(2.0)) * mix_coeff);
 #elif (USE_12_TAP_REGRESSION == 1 && USE_8_TAP_REGRESSIONS == 1 && USE_4_TAP_REGRESSION == 0)
     output_pix.xy = mix(chroma_spatial, mix(chroma_pred_8, chroma_pred_12, 0.5), pow(corr, vec2(2.0)) * mix_coeff);
 #elif (USE_12_TAP_REGRESSION == 1 && USE_8_TAP_REGRESSIONS == 0 && USE_4_TAP_REGRESSION == 1)
