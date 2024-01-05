@@ -79,6 +79,7 @@ vec4 hook() {
 //!DESC Chroma From Luma Prediction (Upscaling Chroma)
 
 #define USE_12_TAP_REGRESSION 1
+#define USE_8_TAP_REGRESSIONS 0
 #define USE_4_TAP_REGRESSION 0
 #define DEBUG 0
 
@@ -185,7 +186,7 @@ vec4 hook() {
     chroma_spatial = mix(chroma_spatial, clamp(chroma_spatial, chroma_min, chroma_max), ar_strength);
 #endif
 
-#if (USE_12_TAP_REGRESSION == 1 || USE_4_TAP_REGRESSION == 1)
+#if (USE_12_TAP_REGRESSION == 1 || USE_8_TAP_REGRESSIONS == 1 || USE_4_TAP_REGRESSION == 1)
     const int i12[12] = {1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14};
 
     float luma_avg_12 = 0.0;
@@ -218,6 +219,47 @@ vec4 hook() {
     vec2 chroma_pred_12 = clamp(alpha_12 * luma_zero + beta_12, 0.0, 1.0);
 #endif
 
+#if (USE_8_TAP_REGRESSIONS == 1)
+    const int i8v[8] = {1, 2, 5, 6, 9, 10, 13, 14};
+    const int i8h[8] = {4, 5, 6, 7, 8, 9, 10, 11};
+
+    float luma_avg_8v = 0.0;
+    float luma_avg_8h = 0.0;
+    float luma_var_8v = 0.0;
+    float luma_var_8h = 0.0;
+    vec2 chroma_avg_8v = vec2(0.0);
+    vec2 chroma_avg_8h = vec2(0.0);
+    vec2 luma_chroma_cov_8v = vec2(0.0);
+    vec2 luma_chroma_cov_8h = vec2(0.0);
+
+    for(int i = 0; i < 8; i++) {
+        luma_avg_8v += luma_pixels[i8v[i]];
+        luma_avg_8h += luma_pixels[i8h[i]];
+        chroma_avg_8v += chroma_pixels[i8v[i]];
+        chroma_avg_8h += chroma_pixels[i8h[i]];
+    }
+
+    luma_avg_8v /= 8.0;
+    luma_avg_8h /= 8.0;
+    chroma_avg_8v /= 8.0;
+    chroma_avg_8h /= 8.0;
+
+    for(int i = 0; i < 8; i++) {
+        luma_var_8v += pow(luma_pixels[i8v[i]] - luma_avg_8v, 2.0);
+        luma_var_8h += pow(luma_pixels[i8h[i]] - luma_avg_8h, 2.0);
+        luma_chroma_cov_8v += (luma_pixels[i8v[i]] - luma_avg_8v) * (chroma_pixels[i8v[i]] - chroma_avg_8v);
+        luma_chroma_cov_8h += (luma_pixels[i8h[i]] - luma_avg_8h) * (chroma_pixels[i8h[i]] - chroma_avg_8h);
+    }
+
+    vec2 alpha_8v = luma_chroma_cov_8v / max(luma_var_8v, 1e-6);
+    vec2 alpha_8h = luma_chroma_cov_8h / max(luma_var_8h, 1e-6);
+    vec2 beta_8v = chroma_avg_8v - alpha_8v * luma_avg_8v;
+    vec2 beta_8h = chroma_avg_8h - alpha_8h * luma_avg_8h;
+    vec2 chroma_pred_8v = clamp(alpha_8v * luma_zero + beta_8v, 0.0, 1.0);
+    vec2 chroma_pred_8h = clamp(alpha_8h * luma_zero + beta_8h, 0.0, 1.0);
+    vec2 chroma_pred_8 = mix(chroma_pred_8v, chroma_pred_8h, 0.5);
+#endif
+
 #if (USE_4_TAP_REGRESSION == 1)
     const int i4[4] = {5, 6, 9, 10};
 
@@ -244,14 +286,20 @@ vec4 hook() {
     vec2 chroma_pred_4 = clamp(alpha_4 * luma_zero + beta_4, 0.0, 1.0);
 #endif
 
-#if (USE_12_TAP_REGRESSION == 1 && USE_4_TAP_REGRESSION == 1)
+#if (USE_12_TAP_REGRESSION == 1 && USE_8_TAP_REGRESSIONS == 1 && USE_4_TAP_REGRESSION == 1)
+    output_pix.xy = mix(chroma_spatial, mix(mix(chroma_pred_4, chroma_pred_12, 0.5), chroma_pred_8, 0.5), pow(corr, vec2(2.0)) * mix_coeff);
+#elif (USE_12_TAP_REGRESSION == 1 && USE_8_TAP_REGRESSIONS == 1 && USE_4_TAP_REGRESSION == 0)
+    output_pix.xy = mix(chroma_spatial, mix(chroma_pred_8, chroma_pred_12, 0.5), pow(corr, vec2(2.0)) * mix_coeff);
+#elif (USE_12_TAP_REGRESSION == 1 && USE_8_TAP_REGRESSIONS == 0 && USE_4_TAP_REGRESSION == 1)
     output_pix.xy = mix(chroma_spatial, mix(chroma_pred_4, chroma_pred_12, 0.5), pow(corr, vec2(2.0)) * mix_coeff);
-#elif (USE_12_TAP_REGRESSION == 1 && USE_4_TAP_REGRESSION == 0)
+#elif (USE_12_TAP_REGRESSION == 1 && USE_8_TAP_REGRESSIONS == 0 && USE_4_TAP_REGRESSION == 0)
     output_pix.xy = mix(chroma_spatial, chroma_pred_12, pow(corr, vec2(2.0)) * mix_coeff);
-#elif (USE_12_TAP_REGRESSION == 0 && USE_4_TAP_REGRESSION == 1)
+#elif (USE_12_TAP_REGRESSION == 0 && USE_8_TAP_REGRESSIONS == 1 && USE_4_TAP_REGRESSION == 1)
+    output_pix.xy = mix(chroma_spatial, mix(chroma_pred_4, chroma_pred_8, 0.5), pow(corr, vec2(2.0)) * mix_coeff);
+#elif (USE_12_TAP_REGRESSION == 0 && USE_8_TAP_REGRESSIONS == 1 && USE_4_TAP_REGRESSION == 0)
+    output_pix.xy = mix(chroma_spatial, chroma_pred_8, pow(corr, vec2(2.0)) * mix_coeff);
+#elif (USE_12_TAP_REGRESSION == 0 && USE_8_TAP_REGRESSIONS == 0 && USE_4_TAP_REGRESSION == 1)
     output_pix.xy = mix(chroma_spatial, chroma_pred_4, pow(corr, vec2(2.0)) * mix_coeff);
-#else
-    output_pix.xy = chroma_spatial;
 #endif
 
     output_pix.xy = clamp(output_pix.xy, 0.0, 1.0);
