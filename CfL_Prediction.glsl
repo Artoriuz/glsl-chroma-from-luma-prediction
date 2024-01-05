@@ -182,8 +182,9 @@ vec4 hook() {
         ct += wd[i] * chroma_pixels[i];
     }
 
-    vec2 chroma_spatial = clamp(ct / wt, 0.0, 1.0);
+    vec2 chroma_spatial = ct / wt;
     chroma_spatial = mix(chroma_spatial, clamp(chroma_spatial, chroma_min, chroma_max), ar_strength);
+    chroma_spatial = clamp(chroma_spatial, 0.0, 1.0);
 #endif
 
 #if (USE_12_TAP_REGRESSION == 1 || USE_8_TAP_REGRESSIONS == 1 || USE_4_TAP_REGRESSION == 1)
