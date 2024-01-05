@@ -300,6 +300,8 @@ vec4 hook() {
     output_pix.xy = mix(chroma_spatial, chroma_pred_8, pow(corr, vec2(2.0)) * mix_coeff);
 #elif (USE_12_TAP_REGRESSION == 0 && USE_8_TAP_REGRESSIONS == 0 && USE_4_TAP_REGRESSION == 1)
     output_pix.xy = mix(chroma_spatial, chroma_pred_4, pow(corr, vec2(2.0)) * mix_coeff);
+#else
+    output_pix.xy = chroma_spatial;
 #endif
 
     output_pix.xy = clamp(output_pix.xy, 0.0, 1.0);
