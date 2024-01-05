@@ -90,7 +90,7 @@ float comp_wd(vec2 d) {
 }
 
 vec4 hook() {
-    float ar_strength = 0.75;
+    float ar_strength = 0.8;
     float mix_coeff = 0.5;
 
     vec4 output_pix = vec4(0.0, 0.0, 0.0, 1.0);
