@@ -90,8 +90,8 @@ float comp_wd(vec2 d) {
 }
 
 vec4 hook() {
-    float ar_strength = 0.8;
-    vec2 mix_coeff = vec2(0.8);
+    float ar_strength = 1.0;
+    vec2 mix_coeff = vec2(0.75);
 
     vec4 output_pix = vec4(0.0, 0.0, 0.0, 1.0);
     float luma_zero = LUMA_texOff(0.0).x;
@@ -183,8 +183,7 @@ vec4 hook() {
     }
 
     vec2 chroma_spatial = ct / wt;
-    chroma_spatial = mix(chroma_spatial, clamp(chroma_spatial, chroma_min, chroma_max), ar_strength);
-    chroma_spatial = clamp(chroma_spatial, 0.0, 1.0);
+    chroma_spatial = clamp(mix(chroma_spatial, clamp(chroma_spatial, chroma_min, chroma_max), ar_strength), 0.0, 1.0);
 #endif
 
 #if (USE_12_TAP_REGRESSION == 1 || USE_8_TAP_REGRESSIONS == 1 || USE_4_TAP_REGRESSION == 1)
@@ -197,12 +196,9 @@ vec4 hook() {
     vec2 luma_chroma_cov_12 = vec2(0.0);
 
     for(int i = 0; i < 12; i++) {
-        luma_avg_12 += luma_pixels[i12[i]];
-        chroma_avg_12 += chroma_pixels[i12[i]];
+        luma_avg_12 += luma_pixels[i12[i]] / 12.0;
+        chroma_avg_12 += chroma_pixels[i12[i]] / 12.0;
     }
-
-    luma_avg_12 /= 12.0;
-    chroma_avg_12 /= 12.0;
 
     for(int i = 0; i < 12; i++) {
         luma_var_12 += pow(luma_pixels[i12[i]] - luma_avg_12, 2.0);
@@ -210,8 +206,7 @@ vec4 hook() {
         luma_chroma_cov_12 += (luma_pixels[i12[i]] - luma_avg_12) * (chroma_pixels[i12[i]] - chroma_avg_12);
     }
 
-    vec2 corr = abs(luma_chroma_cov_12 / max(sqrt(luma_var_12 * chroma_var_12), 1e-6));
-    corr = clamp(corr, 0.0, 1.0);
+    vec2 corr = clamp(abs(luma_chroma_cov_12 / max(sqrt(luma_var_12 * chroma_var_12), 1e-6)), 0.0, 1.0);
     mix_coeff = pow(corr, vec2(8.0)) * mix_coeff;
 #endif
 
@@ -235,16 +230,11 @@ vec4 hook() {
     vec2 luma_chroma_cov_8x = vec2(0.0);
 
     for(int i = 0; i < 8; i++) {
-        luma_avg_8y += luma_pixels[i8y[i]];
-        luma_avg_8x += luma_pixels[i8x[i]];
-        chroma_avg_8y += chroma_pixels[i8y[i]];
-        chroma_avg_8x += chroma_pixels[i8x[i]];
+        luma_avg_8y += luma_pixels[i8y[i]] / 8.0;
+        luma_avg_8x += luma_pixels[i8x[i]] / 8.0;
+        chroma_avg_8y += chroma_pixels[i8y[i]] / 8.0;
+        chroma_avg_8x += chroma_pixels[i8x[i]] / 8.0;
     }
-
-    luma_avg_8y /= 8.0;
-    luma_avg_8x /= 8.0;
-    chroma_avg_8y /= 8.0;
-    chroma_avg_8x /= 8.0;
 
     for(int i = 0; i < 8; i++) {
         luma_var_8y += pow(luma_pixels[i8y[i]] - luma_avg_8y, 2.0);
@@ -271,12 +261,9 @@ vec4 hook() {
     vec2 luma_chroma_cov_4 = vec2(0.0);
 
     for(int i = 0; i < 4; i++) {
-        luma_avg_4 += luma_pixels[i4[i]];
-        chroma_avg_4 += chroma_pixels[i4[i]];
+        luma_avg_4 += luma_pixels[i4[i]] / 4.0;
+        chroma_avg_4 += chroma_pixels[i4[i]] / 4.0;
     }
-
-    luma_avg_4 /= 4.0;
-    chroma_avg_4 /= 4.0;
 
     for(int i = 0; i < 4; i++) {
         luma_var_4 += pow(luma_pixels[i4[i]] - luma_avg_4, 2.0);
