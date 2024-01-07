@@ -157,7 +157,7 @@ vec4 hook() {
     vec2 chroma_pixels[16];
 
     for (int i = 0; i < 16; i++) {
-        luma_pixels[i] = HOOKED_tex(vec2((fp + pix_idx[i]) * HOOKED_pt)).x;
+        luma_pixels[i] = LUMA_LOWRES_tex(vec2((fp + pix_idx[i]) * HOOKED_pt)).x;
         chroma_pixels[i] = HOOKED_tex(vec2((fp + pix_idx[i]) * HOOKED_pt)).xy;
     }
 #endif
