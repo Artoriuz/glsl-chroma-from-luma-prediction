@@ -81,12 +81,19 @@ vec4 hook() {
 #define USE_12_TAP_REGRESSION 1
 #define USE_8_TAP_REGRESSIONS 0
 #define USE_4_TAP_REGRESSION 0
+
 #define DEBUG 0
 
-float comp_wd(vec2 d) {
-    float d2 = min(d.x * d.x + d.y * d.y, 4.0);
-    float d4 = d2 * d2;
-    return (d4 - 8.0 * d2 + 16.0) * (d4 - 5.0 * d2 + 4.0);
+float comp_wd(vec2 v) {
+    float d = min(length(v), 2.0);
+    float d2 = d * d;
+    float d3 = d2 * d;
+
+    if (d < 1.0) {
+        return 1.25 * d3 - 2.25 * d2 + 1.0;
+    } else {
+        return -0.75 * d3 + 3.75 * d2 - 6.0 * d + 3.0;
+    }
 }
 
 vec4 hook() {
