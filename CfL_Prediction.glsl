@@ -81,7 +81,6 @@ vec4 hook() {
 #define USE_12_TAP_REGRESSION 1
 #define USE_8_TAP_REGRESSIONS 0
 #define USE_4_TAP_REGRESSION 0
-
 #define DEBUG 0
 
 float comp_wd(vec2 v) {
@@ -97,8 +96,9 @@ float comp_wd(vec2 v) {
 }
 
 vec4 hook() {
-    float ar_strength = 1.0;
+    float ar_strength = 0.8;
     vec2 mix_coeff = vec2(1.0);
+    vec2 corr_exponent = vec2(8.0);
 
     vec4 output_pix = vec4(0.0, 0.0, 0.0, 1.0);
     float luma_zero = LUMA_texOff(0.0).x;
@@ -214,7 +214,7 @@ vec4 hook() {
     }
 
     vec2 corr = clamp(abs(luma_chroma_cov_12 / max(sqrt(luma_var_12 * chroma_var_12), 1e-6)), 0.0, 1.0);
-    mix_coeff = pow(corr, vec2(8.0)) * mix_coeff;
+    mix_coeff = pow(corr, corr_exponent) * mix_coeff;
 #endif
 
 #if (USE_12_TAP_REGRESSION == 1)

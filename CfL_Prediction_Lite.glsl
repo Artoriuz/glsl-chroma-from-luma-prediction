@@ -52,7 +52,9 @@ float comp_wd(vec2 v) {
 }
 
 vec4 hook() {
+    float ar_strength = 0.8;
     float mix_coeff = 1.0;
+    vec2 corr_exponent = vec2(8.0);
 
     vec4 output_pix = vec4(0.0, 0.0, 0.0, 1.0);
     float luma_zero = LUMA_texOff(0.0).x;
@@ -136,7 +138,7 @@ vec4 hook() {
     }
 
     vec2 chroma_spatial = ct / wt;
-    chroma_spatial = clamp(chroma_spatial, chroma_min, chroma_max);
+    chroma_spatial = clamp(mix(chroma_spatial, clamp(chroma_spatial, chroma_min, chroma_max), ar_strength), 0.0, 1.0);
 #endif
 
     float luma_avg = 0.0;
@@ -162,7 +164,7 @@ vec4 hook() {
     vec2 beta = chroma_avg - alpha * luma_avg;
     vec2 chroma_pred = clamp(alpha * luma_zero + beta, 0.0, 1.0);
 
-    output_pix.xy = mix(chroma_spatial, chroma_pred, pow(corr, vec2(8.0)) * mix_coeff);
+    output_pix.xy = mix(chroma_spatial, chroma_pred, pow(corr, corr_exponent) * mix_coeff);
     output_pix.xy = clamp(output_pix.xy, 0.0, 1.0);
     return output_pix;
 }
