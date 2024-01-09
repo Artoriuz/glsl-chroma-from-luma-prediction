@@ -154,10 +154,10 @@ vec4 hook() {
     luma_pixels[14] = luma_quads[3].x;
     luma_pixels[15] = luma_quads[3].y;
 #else
-    vec2 pix_idx[16] = {{-0.5,-0.5}, { 0.5,-0.5}, { 1.5,-0.5}, { 2.5,-0.5},
-                        {-0.5, 0.5}, { 0.5, 0.5}, { 1.5, 0.5}, { 2.5, 0.5},
-                        {-0.5, 1.5}, { 0.5, 1.5}, { 1.5, 1.5}, { 2.5, 1.5},
-                        {-0.5, 2.5}, { 0.5, 2.5}, { 1.5, 2.5}, { 2.5, 2.5}};
+    vec2 pix_idx[16] = {{-0.5,-0.5}, {0.5,-0.5}, {1.5,-0.5}, {2.5,-0.5},
+                        {-0.5, 0.5}, {0.5, 0.5}, {1.5, 0.5}, {2.5, 0.5},
+                        {-0.5, 1.5}, {0.5, 1.5}, {1.5, 1.5}, {2.5, 1.5},
+                        {-0.5, 2.5}, {0.5, 2.5}, {1.5, 2.5}, {2.5, 2.5}};
 
     float luma_pixels[16];
     vec2 chroma_pixels[16];
@@ -201,12 +201,12 @@ vec4 hook() {
     vec2 chroma_var_12 = vec2(0.0);
     vec2 luma_chroma_cov_12 = vec2(0.0);
 
-    for(int i = 0; i < 12; i++) {
+    for (int i = 0; i < 12; i++) {
         luma_avg_12 += luma_pixels[i12[i]] / 12.0;
         chroma_avg_12 += chroma_pixels[i12[i]] / 12.0;
     }
 
-    for(int i = 0; i < 12; i++) {
+    for (int i = 0; i < 12; i++) {
         luma_var_12 += pow(luma_pixels[i12[i]] - luma_avg_12, 2.0);
         chroma_var_12 += pow(chroma_pixels[i12[i]] - chroma_avg_12, vec2(2.0));
         luma_chroma_cov_12 += (luma_pixels[i12[i]] - luma_avg_12) * (chroma_pixels[i12[i]] - chroma_avg_12);
@@ -235,14 +235,14 @@ vec4 hook() {
     vec2 luma_chroma_cov_8y = vec2(0.0);
     vec2 luma_chroma_cov_8x = vec2(0.0);
 
-    for(int i = 0; i < 8; i++) {
+    for (int i = 0; i < 8; i++) {
         luma_avg_8y += luma_pixels[i8y[i]] / 8.0;
         luma_avg_8x += luma_pixels[i8x[i]] / 8.0;
         chroma_avg_8y += chroma_pixels[i8y[i]] / 8.0;
         chroma_avg_8x += chroma_pixels[i8x[i]] / 8.0;
     }
 
-    for(int i = 0; i < 8; i++) {
+    for (int i = 0; i < 8; i++) {
         luma_var_8y += pow(luma_pixels[i8y[i]] - luma_avg_8y, 2.0);
         luma_var_8x += pow(luma_pixels[i8x[i]] - luma_avg_8x, 2.0);
         luma_chroma_cov_8y += (luma_pixels[i8y[i]] - luma_avg_8y) * (chroma_pixels[i8y[i]] - chroma_avg_8y);

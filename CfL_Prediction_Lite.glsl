@@ -103,10 +103,10 @@ vec4 hook() {
     luma_pixels[10] = luma_quads[2].y;
     luma_pixels[11] = luma_quads[3].x;
 #else
-    vec2 pix_idx[12] = {             { 0.5,-0.5}, { 1.5,-0.5},
-                        {-0.5, 0.5}, { 0.5, 0.5}, { 1.5, 0.5}, { 2.5, 0.5},
-                        {-0.5, 1.5}, { 0.5, 1.5}, { 1.5, 1.5}, { 2.5, 1.5},
-                                     { 0.5, 2.5}, { 1.5, 2.5}             };
+    vec2 pix_idx[12] = {             {0.5,-0.5}, {1.5,-0.5},
+                        {-0.5, 0.5}, {0.5, 0.5}, {1.5, 0.5}, {2.5, 0.5},
+                        {-0.5, 1.5}, {0.5, 1.5}, {1.5, 1.5}, {2.5, 1.5},
+                                     {0.5, 2.5}, {1.5, 2.5}            };
 
     float luma_pixels[12];
     vec2 chroma_pixels[12];
@@ -147,12 +147,12 @@ vec4 hook() {
     vec2 chroma_var = vec2(0.0);
     vec2 luma_chroma_cov = vec2(0.0);
 
-    for(int i = 0; i < 12; i++) {
+    for (int i = 0; i < 12; i++) {
         luma_avg += luma_pixels[i] / 12.0;
         chroma_avg += chroma_pixels[i] / 12.0;
     }
 
-    for(int i = 0; i < 12; i++) {
+    for (int i = 0; i < 12; i++) {
         luma_var += pow(luma_pixels[i] - luma_avg, 2.0);
         chroma_var += pow(chroma_pixels[i] - chroma_avg, vec2(2.0));
         luma_chroma_cov += (luma_pixels[i] - luma_avg) * (chroma_pixels[i] - chroma_avg);
