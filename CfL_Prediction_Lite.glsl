@@ -148,9 +148,12 @@ vec4 hook() {
     vec2 luma_chroma_cov = vec2(0.0);
 
     for (int i = 0; i < 12; i++) {
-        luma_avg += luma_pixels[i] / 12.0;
-        chroma_avg += chroma_pixels[i] / 12.0;
+        luma_avg += luma_pixels[i];
+        chroma_avg += chroma_pixels[i];
     }
+
+    luma_avg /= 12.0;
+    chroma_avg /= 12.0;
 
     for (int i = 0; i < 12; i++) {
         luma_var += pow(luma_pixels[i] - luma_avg, 2.0);
