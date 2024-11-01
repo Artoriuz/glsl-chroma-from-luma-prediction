@@ -6,9 +6,7 @@ Since a simple linear regression obviously doesn't take into account pixel dista
 
 You can control which local linear regressions you want to use with `USE_12_TAP_REGRESSION`,  `USE_8_TAP_REGRESSIONS`.
 
-The lite variant offers better performance at the expense of some quality.
-
-The shaders are experimental and minor improvements are being made over time. If you have any suggestions, feel free to send them.
+The lite variant offers better performance at the expense of some quality. Dev variant has a bilateral smoothing filter applied as a third step to remove most artifacts created by the shader.
 
 ## Instructions
 Add something like this to your mpv config:
