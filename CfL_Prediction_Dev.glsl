@@ -37,6 +37,7 @@ vec4 hook() {
 //!BIND HOOKED
 //!BIND LUMA
 //!BIND LUMA_LOWRES
+//!SAVE CHROMA_CFL
 //!WHEN CHROMA.w LUMA.w <
 //!WIDTH LUMA.w
 //!HEIGHT LUMA.h
@@ -183,7 +184,11 @@ vec4 hook() {
 128.0
 
 //!HOOK CHROMA
-//!BIND HOOKED
+//!BIND CHROMA_CFL
+//!WHEN CHROMA.w LUMA.w <
+//!WIDTH LUMA.w
+//!HEIGHT LUMA.h
+//!OFFSET ALIGN
 //!DESC Chroma From Luma Prediction (Smoothing Chroma)
 
 vec2 comp_w(vec2 spatial_distance, vec2 intensity_distance) {
@@ -192,19 +197,16 @@ vec2 comp_w(vec2 spatial_distance, vec2 intensity_distance) {
 
 vec4 hook() {
     vec4 output_pix = vec4(0.0, 0.0, 0.0, 1.0);
-    vec2 chroma_zero = HOOKED_texOff(0).xy;
-
-    vec2 chroma_pixels[3][3];
-    vec2 w[3][3];
+    vec2 chroma_zero = CHROMA_CFL_texOff(0).xy;
     vec2 wt = vec2(0.0);
     vec2 ct = vec2(0.0);
 
     for (int i = -1; i < 2; i++) {
         for (int j = -1; j < 2; j++) {
-            chroma_pixels[i+1][j+1] = HOOKED_texOff(vec2(i, j)).xy;
-            w[i+1][j+1] = comp_w(vec2(i, j), chroma_zero - chroma_pixels[i+1][j+1]);
-            wt += w[i+1][j+1];
-            ct += w[i+1][j+1] * chroma_pixels[i+1][j+1];
+            vec2 chroma_pixels = CHROMA_CFL_texOff(vec2(i, j)).xy;
+            vec2 w = comp_w(vec2(i, j), chroma_zero - chroma_pixels);
+            wt += w;
+            ct += w * chroma_pixels;
         }
     }
 
