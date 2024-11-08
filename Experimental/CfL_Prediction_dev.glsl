@@ -35,32 +35,18 @@
 //!WIDTH CHROMA.w
 //!HEIGHT LUMA.h
 //!WHEN CHROMA.w LUMA.w <
-//!DESC Chroma From Luma Prediction (Catrom 1st step, Downscaling Luma)
+//!DESC Chroma From Luma Prediction (Hermite 1st step, Downscaling Luma)
 
 float comp_wd(vec2 v) {
-    float x = min(length(v), 2.0);
-    float c = 0.5;
-    float b = 1.0 - 2.0 * c;
-    float  p0 = 6.0 - 2.0 * b,
-           p2 = -18.0 + 12.0 * b + 6.0 * c,
-           p3 = 12.0 - 9.0 * b - 6.0 * c,
-           q0 = 8.0 * b + 24.0 * c,
-           q1 = -12.0 * b - 48.0 * c,
-           q2 = 6.0 * b + 30.0 * c,
-           q3 = -b - 6.0 * c;
-
-    if (x < 1.0) {
-        return (p0 + x * x * (p2 + x * p3)) / p0;
-    } else {
-        return (q0 + x * (q1 + x * (q2 + x * q3))) / p0;
-    }
+    float x = min(length(v), 1.0);
+    return smoothstep(0.0, 1.0, 1.0 - x);
 }
 
 vec4 hook() {
     vec2 luma_pos = LUMA_pos;
     luma_pos.x += chroma_offset_x / LUMA_size.x;
-    float start  = ceil((luma_pos.x - 2.0 * (1.0 / CHROMA_size.x)) * LUMA_size.x - 0.5);
-    float end = floor((luma_pos.x + 2.0 * (1.0 / CHROMA_size.x)) * LUMA_size.x - 0.5);
+    float start  = ceil((luma_pos.x - (1.0 / CHROMA_size.x)) * LUMA_size.x - 0.5);
+    float end = floor((luma_pos.x + (1.0 / CHROMA_size.x)) * LUMA_size.x - 0.5);
 
     float wt = 0.0;
     float luma_sum = 0.0;
@@ -87,32 +73,18 @@ vec4 hook() {
 //!WIDTH CHROMA.w
 //!HEIGHT CHROMA.h
 //!WHEN CHROMA.w LUMA.w <
-//!DESC Chroma From Luma Prediction (Catrom 2nd step, Downscaling Luma)
+//!DESC Chroma From Luma Prediction (Hermite 2nd step, Downscaling Luma)
 
 float comp_wd(vec2 v) {
-    float x = min(length(v), 2.0);
-    float c = 0.5;
-    float b = 1.0 - 2.0 * c;
-    float  p0 = 6.0 - 2.0 * b,
-           p2 = -18.0 + 12.0 * b + 6.0 * c,
-           p3 = 12.0 - 9.0 * b - 6.0 * c,
-           q0 = 8.0 * b + 24.0 * c,
-           q1 = -12.0 * b - 48.0 * c,
-           q2 = 6.0 * b + 30.0 * c,
-           q3 = -b - 6.0 * c;
-
-    if (x < 1.0) {
-        return (p0 + x * x * (p2 + x * p3)) / p0;
-    } else {
-        return (q0 + x * (q1 + x * (q2 + x * q3))) / p0;
-    }
+    float x = min(length(v), 1.0);
+    return smoothstep(0.0, 1.0, 1.0 - x);
 }
 
 vec4 hook() {
     vec2 luma_pos = LUMA_LR_pos;
     luma_pos.y += chroma_offset_y / LUMA_LR_size.y;
-    float start  = ceil((luma_pos.y - 2.0 * (1.0 / CHROMA_size.y)) * LUMA_LR_size.y - 0.5);
-    float end = floor((luma_pos.y + 2.0 * (1.0 / CHROMA_size.y)) * LUMA_LR_size.y - 0.5);
+    float start  = ceil((luma_pos.y - (1.0 / CHROMA_size.y)) * LUMA_LR_size.y - 0.5);
+    float end = floor((luma_pos.y + (1.0 / CHROMA_size.y)) * LUMA_LR_size.y - 0.5);
 
     float wt = 0.0;
     float luma_sum = 0.0;
