@@ -327,6 +327,7 @@ vec4 hook() {
 //!HOOK CHROMA
 //!BIND CHROMA
 //!BIND LUMA
+//!BIND LUMA_LR
 //!DESC Chroma From Luma Prediction (Smoothing Chroma)
 
 float comp_w(vec2 spatial_distance, float intensity_distance) {
