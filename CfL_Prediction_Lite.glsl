@@ -143,6 +143,8 @@ vec4 hook() {
 
     float luma_avg = 0.0;
     float luma_var = 0.0;
+    float luma_min = luma_pixels[0];
+    float luma_max = luma_pixels[0];
     vec2 chroma_avg = vec2(0.0);
     vec2 chroma_var = vec2(0.0);
     vec2 luma_chroma_cov = vec2(0.0);
@@ -156,12 +158,18 @@ vec4 hook() {
     chroma_avg /= 12.0;
 
     for (int i = 0; i < 12; i++) {
+        luma_min = min(luma_min, luma_pixels[i]);
+        luma_max = max(luma_max, luma_pixels[i]);
         luma_var += pow(luma_pixels[i] - luma_avg, 2.0);
         chroma_var += pow(chroma_pixels[i] - chroma_avg, vec2(2.0));
         luma_chroma_cov += (luma_pixels[i] - luma_avg) * (chroma_pixels[i] - chroma_avg);
     }
 
     vec2 corr = clamp(abs(luma_chroma_cov / max(sqrt(luma_var * chroma_var), 1e-6)), 0.0, 1.0);
+
+    float luma_range = max(luma_max - luma_min, 1e-6);
+    float extrapolation = max(max(luma_zero - luma_max, luma_min - luma_zero), 0.0) / luma_range;
+    mix_coeff *= clamp((8.0 - extrapolation) / 4.0, 0.0, 1.0);
 
     vec2 alpha = luma_chroma_cov / max(luma_var, 1e-6);
     vec2 beta = chroma_avg - alpha * luma_avg;
